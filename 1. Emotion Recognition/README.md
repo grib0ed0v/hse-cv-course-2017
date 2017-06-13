@@ -21,10 +21,10 @@ Architecture:
     - video stream.
 ---
 
-Program applies following command line arguments: 
--i <path to image>
--i <path to folder with images>
--v <id of the opened video capturing device>
--v <path to video file>
-If no arguments specified, application start working with videostream from default(0) device.
-If both parameters(-i, -v) are specified or there is an issue with device or file, application will raise appropriate exception (IO or Illegal Argument)
+Program applies following command line arguments:  
+* -i <path to image>
+* -i <path to folder with images>
+* -v <id of the opened video capturing device>
+* -v <path to video file>
+If no arguments specified, application start working with videostream from default(0) device.  
+If both parameters(-i, -v) are specified or there is an issue with device or file, application will raise appropriate exception (IO or Illegal Argument).  
