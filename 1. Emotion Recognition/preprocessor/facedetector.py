@@ -8,8 +8,8 @@ class FaceDetector:
     # Load resources here
     # Constructor receive parameter bound, which describes
     # how many faces might be found in order to save RT processing.
-    def __init__(self, bound):
-        self.bound = bound
+    def __init__(self):
+        self.bound = 0
 
     # Method detects faces on the image and returns list of tuples with 4 ROI coordinates:
     # x0, y0, x1,y1 - which bound face on the image.
@@ -18,8 +18,8 @@ class FaceDetector:
         faces = list()
 
         # use bound here
-        faces.append(self.detect_front_faces(image))
-        faces.append(self.detect_profile_faces(image))
+        faces.append(self.__detect_front_faces(image))
+        faces.append(self.__detect_profile_faces(image))
 
         return faces
 
@@ -27,7 +27,7 @@ class FaceDetector:
     # Returns list of tuples with 4 ROI coordinates:
     # x0, y0, x1,y1 - which bound face on the image.
     # NOTE: Method does not modify image.
-    def detect_front_faces(self, image):
+    def __detect_front_faces(self, image):
         front_faces = list()
         height, weight = image.shape[:2]
         front_faces.append((0, 0, height, weight))
@@ -39,7 +39,7 @@ class FaceDetector:
     # NOTE: Method does not modify image.
     #
     # TODO: might be useless. Test it later
-    def detect_profile_faces(self, image):
+    def __detect_profile_faces(self, image):
         front_faces = list()
         height, weight = image.shape[:2]
         front_faces.append((0, 0, height, weight))

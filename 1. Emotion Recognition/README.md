@@ -9,8 +9,8 @@ Architecture:
     - colour correction;
     - denoising;
     - light correction;
-    - scale;
     - face detection via Haar cascades.  
+    
     Folder resources contains cascades descriptors.
 * recognizer   
   contains wrapper for work with Convolutional Neural Network with resources.
@@ -18,7 +18,9 @@ Architecture:
   provides different sources for solving Emotion-Recognition problem:
     - single image;
     - folder with images;
-    - video stream.
+    - video stream.  
+    
+    starts flowexecutor, which encapsulates image processing logic 
 ---
 
 Program applies following command line arguments:  
