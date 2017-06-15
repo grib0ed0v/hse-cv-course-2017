@@ -3,11 +3,15 @@ import logging
 from preprocessor.chain import ProcessorChain
 from recognizer.emotionrecognizer import EmotionRecognizer
 from preprocessor.facedetector import FaceDetector
+from starter.configresolver import ConfigResolver
+
 
 class FlowExecutor:
 
     def __init__(self):
-        self.chain = ProcessorChain()
+        self.config_resolver = ConfigResolver()
+
+        self.chain = ProcessorChain(self.config_resolver.get_processor_chain())
         self.face_detector = FaceDetector()
         self.emotion_recognizer = EmotionRecognizer()
 
@@ -21,8 +25,7 @@ class FlowExecutor:
 
     def execute(self, image):
         image = self.chain.run(image)  # original image will be processed in chain methods
-        #faces = self.face_detector.detect_faces(image)  # faces coordinates
-        faces = None
+        faces = self.face_detector.detect_faces(image)  # faces coordinates
 
         if faces is not None and len(faces) > 0:
             for (x0, y0, x1, y1) in faces:

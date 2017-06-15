@@ -18,8 +18,8 @@ class FaceDetector:
         faces = list()
 
         # use bound here
-        faces.append(self.__detect_front_faces(image))
-        faces.append(self.__detect_profile_faces(image))
+        faces.extend(self.__detect_front_faces(image))
+        faces.extend(self.__detect_profile_faces(image))
 
         return faces
 
