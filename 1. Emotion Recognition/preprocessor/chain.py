@@ -1,4 +1,5 @@
 # Class describes sequence of processor, which should be applied to the image
+from preprocessor.processor.impl.color import ColorProcessor
 from preprocessor.processor.impl.noise import NoiseProcessor
 import cv2
 
@@ -8,6 +9,7 @@ class ProcessorChain:
     def __init__(self):
         self.chain = list()
         self.chain.append(NoiseProcessor())
+        self.chain.append(ColorProcessor())
         # add more processors here
 
     # main method for running pre process actions
