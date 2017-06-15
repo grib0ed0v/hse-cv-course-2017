@@ -1,3 +1,6 @@
+# Class describes sequence of processor, which should be applied to the image
+from preprocessor.processor.impl.tonal import TonalProcessor
+from preprocessor.processor.impl.noise import NoiseProcessor
 import cv2
 
 
