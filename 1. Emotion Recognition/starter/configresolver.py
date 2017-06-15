@@ -2,6 +2,7 @@ import configparser
 import logging
 
 from preprocessor.processor.impl.noise import NoiseProcessor
+from preprocessor.processor.impl.tonal import TonalProcessor
 
 
 class ConfigResolver:
@@ -22,6 +23,8 @@ class ConfigResolver:
         for processor_name in chain_description.split():
             if processor_name == 'NoiseProcessor':
                 chain.append(self.__build_noise_processor())
+            elif processor_name == 'TonalProcessor':
+                chain.append(self.__build_tonal_processor())
             else:
                 logging.error('No such processor with name: ' + processor_name)
 
@@ -35,3 +38,7 @@ class ConfigResolver:
         templateWindowSize = self.config.getint('NoiseProcessor', 'templateWindowSize', fallback=7)
         searchWindowSize = self.config.getint('NoiseProcessor', 'searchWindowSize', fallback=21)
         return NoiseProcessor(h, hColor, templateWindowSize, searchWindowSize)
+
+    def __build_tonal_processor(self):
+        gamma = self.config.getfloat('TonalProcessor', 'gamma', fallback=1)
+        return TonalProcessor(gamma)

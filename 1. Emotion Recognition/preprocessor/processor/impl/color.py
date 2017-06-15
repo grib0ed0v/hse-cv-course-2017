@@ -1,7 +1,6 @@
 from preprocessor.processor.abstractprocessor import AbstractProcessor
 
 
-
 class ColorProcessor(AbstractProcessor):
     def __init__(self):
         pass
