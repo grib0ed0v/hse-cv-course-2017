@@ -20,8 +20,9 @@ class FlowExecutor:
         pass
 
     def execute(self, image):
-        self.chain.run(image)  # original image will be processed in chain methods
-        faces = self.face_detector.detect_faces(image)  # faces coordinates
+        image = self.chain.run(image)  # original image will be processed in chain methods
+        #faces = self.face_detector.detect_faces(image)  # faces coordinates
+        faces = None
 
         if faces is not None and len(faces) > 0:
             for (x0, y0, x1, y1) in faces:
