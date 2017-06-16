@@ -12,4 +12,4 @@ class EmotionRecognizer:
     # add logging!
     def recognize(self, image):
         scaled_image = self.scale(image)
-        return ''
+        return 'my emotion'

@@ -14,5 +14,5 @@ class ProcessorChain:
             image = p.process(image)
             cv2.imshow(str(i), image)  # debug output
             i += 1
-        cv2.waitKey(0)
+        #cv2.waitKey(0)
         return image

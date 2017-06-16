@@ -40,5 +40,5 @@ class ConfigResolver:
         return NoiseProcessor(h, hColor, templateWindowSize, searchWindowSize)
 
     def __build_tonal_processor(self):
-        gamma = self.config.getfloat('TonalProcessor', 'gamma', fallback=1)
+        gamma = self.config.getfloat('TonalProcessor', 'gamma', fallback=1.0)
         return TonalProcessor(gamma)

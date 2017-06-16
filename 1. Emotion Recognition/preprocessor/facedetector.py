@@ -29,8 +29,8 @@ class FaceDetector:
     # NOTE: Method does not modify image.
     def __detect_front_faces(self, image):
         front_faces = list()
-        height, weight = image.shape[:2]
-        front_faces.append((0, 0, height, weight))
+        height, width = image.shape[:2]
+        front_faces.append((0, 0, height, width))
         return front_faces
 
     # Method for detecting profile faces on the image.
@@ -41,6 +41,6 @@ class FaceDetector:
     # TODO: might be useless. Test it later
     def __detect_profile_faces(self, image):
         front_faces = list()
-        height, weight = image.shape[:2]
-        front_faces.append((0, 0, height, weight))
+        height, width = image.shape[:2]
+        front_faces.append((0, 0, height, width))
         return front_faces
