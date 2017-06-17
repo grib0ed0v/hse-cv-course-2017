@@ -17,7 +17,7 @@ class FlowExecutor:
 
     # crop image of size
     def __crop(self, image, p1, p2):
-        return image[p1[0]:p2[0], p1[1]:p2[1], :]
+        return image[p1[1]:p2[1], p1[0]:p2[0], :]
 
     # add bounding box of appropriate color with emotions label
     def __add_labeled_bounding_box(self, image, predicted_emotion, pt1, pt2):
