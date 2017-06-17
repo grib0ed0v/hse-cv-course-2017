@@ -35,11 +35,13 @@ class FlowExecutor:
         if faces is not None and len(faces) > 0:
             for (x, y, w, h) in faces:
                 face = self.__crop(image_copy, (x, y), (x + w, y + h))
-                predicted_emotion = self.emotion_recognizer.recognize(face)
+                height, width = face.shape[:2]
+                if height > 0 and width > 0:
+                    predicted_emotion = self.emotion_recognizer.recognize(face)
 
-                logging.info('Started Bounding Box + Label')
-                self.__add_labeled_bounding_box(image, predicted_emotion, (x, y), (x + w, y + h))  # pass original image for bounding
-                logging.info('Ended Bounding Box + Label')
+                    logging.info('Started Bounding Box + Label')
+                    self.__add_labeled_bounding_box(image, predicted_emotion, (x, y), (x + w, y + h))  # pass original image for bounding
+                    logging.info('Ended Bounding Box + Label')
         else:
             logging.warning('No face was found!')
 

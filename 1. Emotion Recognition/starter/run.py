@@ -43,10 +43,12 @@ def read_videostream(option, flow_executor):
         cap = cv2.VideoCapture(int(option))
 
     try:
-        while True:
+        while cap.isOpened():
             # Take each frame
             _, frame = cap.read()
-            execute(frame, flow_executor)
+            execute(frame, flow_executor, 'video')
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
     finally:
         cap.release()
         cv2.destroyAllWindows()
