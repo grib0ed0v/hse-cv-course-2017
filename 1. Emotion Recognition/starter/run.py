@@ -1,51 +1,61 @@
-#!/usr/bin/python
-import cv2, os
-import argparse, sys
+import cv2
+import os
+import argparse
+import sys
+import logging
 
-#from preprocessor.chain import ProcessorChain
 from starter.flowexecutor import FlowExecutor
 
-def main(argv):
+
+def __main__(argv):
+    logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="path to the image or folder")
     parser.add_argument("-v", "--video", help="path to the video or camera id", default=0)
     args = parser.parse_args()
+    flow_executor = FlowExecutor()
     if args.image:
-        image_process(args.image)
-    elif args.video or len(argv)==0:
-        read_videostream(args.video)
+        image_process(args.image, flow_executor)
+    elif args.video or len(argv) == 0:
+        read_videostream(args.video, flow_executor)
     else:
-        print ('Illegal Argument! Try again.')
+        raise ValueError('Illegal Argument! Try again.')
 
-def image_process(source):
-    flow = FlowExecutor()
 
-    if (os.path.isdir(source) == False):
-        image =flow.execute(cv2.imread(source))
-        cv2.imshow(source, image)
-        cv2.waitKey(0)
+def image_process(source, flow_executor):
+    if not os.path.isdir(source):
+        execute(cv2.imread(source), flow_executor, source)
     else:
         for filename in os.listdir(source):
-            # print filename
-            img = cv2.imread(os.path.join(source, filename))
+            image_name = os.path.join(source, filename)
+            img = cv2.imread(image_name)
             if img is not None:
-                flow.execute(img)
+                execute(img, flow_executor, image_name)
+
+    cv2.waitKey(0)
 
 
-def read_videostream(option):
-    flow = FlowExecutor()
+def read_videostream(option, flow_executor):
     if os.path.isfile(option):
         cap = cv2.VideoCapture(option)
     else:
-        id = int(option)
-        cap = cv2.VideoCapture(id)
-    while (1):
-        # Take each frame
-        _, frame = cap.read()
-        flow.execute(frame)
-    #exeption
-    cap.release()
-    cv2.destroyAllWindows()
+        cap = cv2.VideoCapture(int(option))
+
+    try:
+        while True:
+            # Take each frame
+            _, frame = cap.read()
+            execute(frame, flow_executor)
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+
+
+def execute(image, flow_executor, name='Result'):
+    image = flow_executor.execute(image)
+    cv2.imshow(name, image)
+
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    __main__(sys.argv[1:])

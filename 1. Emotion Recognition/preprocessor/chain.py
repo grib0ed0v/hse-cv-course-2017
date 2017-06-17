@@ -1,7 +1,8 @@
-import cv2
-
-
 # Class describes sequence of processor, which should be applied to the image
+#import cv2
+import logging
+
+
 class ProcessorChain:
     # Method sets sequence of processors
     def __init__(self, chain):
@@ -9,10 +10,9 @@ class ProcessorChain:
 
     # main method for running pre process actions
     def run(self, image):
-        i = 0
         for p in self.chain:
-            image = p.process(image)
-            cv2.imshow(p.__class__.__name__, image)  # debug output
-            i += 1
-        #cv2.waitKey(0)
+            logging.info('Start: %s', p.__class__.__name__)
+            p.process(image)
+            logging.info('Finished: %s', p.__class__.__name__)
+            #cv2.imshow(p.__class__.__name__, image)  # debug output
         return image

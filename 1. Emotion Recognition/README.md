@@ -36,7 +36,7 @@ If both parameters(-i, -v) are specified or there is an issue with device or fil
 
 Prerequisites: 
 
-* Anaconda with Python 3 
+* Anaconda with Python 3   
 Download: https://www.continuum.io/downloads 
-* OpenCV 3.2 version to work with DNN module 
+* OpenCV 3.2 version to work with DNN module   
 To install: conda install -c conda-forge opencv=3.2.0

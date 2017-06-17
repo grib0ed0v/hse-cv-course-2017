@@ -3,7 +3,7 @@ from preprocessor.processor.abstractprocessor import AbstractProcessor
 
 
 class ContrastProcessor(AbstractProcessor):
-    def __init__(self, clipLimit=2.0, tileGridSize=(8,8)):
+    def __init__(self, clipLimit=2.0, tileGridSize=(8, 8)):
         self.clipLimit = clipLimit
         self.tileGridSize = tileGridSize
 
@@ -14,5 +14,4 @@ class ContrastProcessor(AbstractProcessor):
         clahe = cv2.createCLAHE(self.clipLimit, self.tileGridSize)
         v = clahe.apply(v)
         hsv = cv2.merge((h, s, v))
-        image = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-        return image
+        cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB, image)

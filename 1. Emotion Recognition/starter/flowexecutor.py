@@ -27,13 +27,19 @@ class FlowExecutor:
     def execute(self, image):
         image_copy = image.copy()
         image_copy = self.chain.run(image_copy)  # image will be processed in chain methods
+
+        logging.info('Started Face Detection')
         faces = self.face_detector.detect_faces(image_copy)  # faces coordinates
+        logging.info('Ended Face Detection')
 
         if faces is not None and len(faces) > 0:
             for (x, y, w, h) in faces:
                 face = self.__crop(image_copy, (x, y), (x + w, y + h))
                 predicted_emotion = self.emotion_recognizer.recognize(face)
+
+                logging.info('Started Bounding Box + Label')
                 self.__add_labeled_bounding_box(image, predicted_emotion, (x, y), (x + w, y + h))  # pass original image for bounding
+                logging.info('Ended Bounding Box + Label')
         else:
             logging.warning('No face was found!')
 

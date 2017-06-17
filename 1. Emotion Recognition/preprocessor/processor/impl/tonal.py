@@ -11,5 +11,4 @@ class TonalProcessor(AbstractProcessor):
     def process(self, image):
         new_gamma = 1.0 / self.gamma
         adj_gamma = np.array([((i / 255.0) ** new_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")  # build  table with their adjusted gamma values
-        image = cv2.LUT(image, adj_gamma)  # function LUT fills the output array with values from the adjusted gamma
-        return image
+        cv2.LUT(image, adj_gamma, image)  # function LUT fills the output array with values from the adjusted gamma
