@@ -12,7 +12,7 @@ class ProcessorChain:
         i = 0
         for p in self.chain:
             image = p.process(image)
-            cv2.imshow(str(i), image)  # debug output
+            cv2.imshow(p.__class__.__name__, image)  # debug output
             i += 1
         #cv2.waitKey(0)
         return image

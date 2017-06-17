@@ -3,6 +3,7 @@ import logging
 
 from preprocessor.processor.impl.noise import NoiseProcessor
 from preprocessor.processor.impl.tonal import TonalProcessor
+from preprocessor.processor.impl.contrast import ContrastProcessor
 
 
 class ConfigResolver:
@@ -25,6 +26,8 @@ class ConfigResolver:
                 chain.append(self.__build_noise_processor())
             elif processor_name == 'TonalProcessor':
                 chain.append(self.__build_tonal_processor())
+            elif processor_name == 'ContrastProcessor':
+                chain.append(self.__build_contrast_processor())
             else:
                 logging.error('No such processor with name: ' + processor_name)
 
@@ -42,3 +45,9 @@ class ConfigResolver:
     def __build_tonal_processor(self):
         gamma = self.config.getfloat('TonalProcessor', 'gamma', fallback=1.0)
         return TonalProcessor(gamma)
+
+    def __build_contrast_processor(self):
+        clipLimit = self.config.getfloat('ContrastProcessor', 'clipLimit', fallback=2.0)
+        tileGridSize_h = self.config.getint('ContrastProcessor', 'tileGridSize_h', fallback=8)
+        tileGridSize_w = self.config.getint('ContrastProcessor', 'tileGridSize_w', fallback=8)
+        return ContrastProcessor(clipLimit, (tileGridSize_h,tileGridSize_w))
