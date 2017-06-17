@@ -1,6 +1,7 @@
 import configparser
 import logging
 
+from preprocessor.processor.impl.color import ColorProcessor
 from preprocessor.processor.impl.noise import NoiseProcessor
 from preprocessor.processor.impl.tonal import TonalProcessor
 from preprocessor.processor.impl.contrast import ContrastProcessor
@@ -28,6 +29,8 @@ class ConfigResolver:
                 chain.append(self.__build_tonal_processor())
             elif processor_name == 'ContrastProcessor':
                 chain.append(self.__build_contrast_processor())
+            elif processor_name == 'ColorProcessor':
+                chain.append(self.__build_color_processor())
             else:
                 logging.error('No such processor with name: ' + processor_name)
 
@@ -51,3 +54,6 @@ class ConfigResolver:
         tileGridSize_h = self.config.getint('ContrastProcessor', 'tileGridSize_h', fallback=8)
         tileGridSize_w = self.config.getint('ContrastProcessor', 'tileGridSize_w', fallback=8)
         return ContrastProcessor(clipLimit, (tileGridSize_h,tileGridSize_w))
+
+    def __build_color_processor(self):
+            return ColorProcessor()
