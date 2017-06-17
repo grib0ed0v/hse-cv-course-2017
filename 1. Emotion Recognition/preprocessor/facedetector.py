@@ -1,46 +1,14 @@
-# Class for Face detection.
-# Use two types of Haar cascades - for frontal and profile face detection.
-# Potential problems: - Faces might overlap on one image.
-#                     - Cascades might found the same face and we will duplicate operations.
+import cv2
+import logging
 
 
 class FaceDetector:
-    # Load resources here
-    # Constructor receive parameter bound, which describes
-    # how many faces might be found in order to save RT processing.
     def __init__(self):
-        self.bound = 0
+        self.frontal_face_cascade = cv2.CascadeClassifier('./resources/haarcascade_frontalface_default.xml')
 
-    # Method detects faces on the image and returns list of tuples with 4 ROI coordinates:
-    # x0, y0, x1,y1 - which bound face on the image.
-    # NOTE: Method does not modify image.
     def detect_faces(self, image):
-        faces = list()
-
-        # use bound here
-        faces.extend(self.__detect_front_faces(image))
-        faces.extend(self.__detect_profile_faces(image))
-
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = self.frontal_face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40),
+                                                           flags=cv2.CASCADE_SCALE_IMAGE)
+        logging.info('Found %s face(s)', len(faces))
         return faces
-
-    # Method for detecting front faces on the image.
-    # Returns list of tuples with 4 ROI coordinates:
-    # x0, y0, x1,y1 - which bound face on the image.
-    # NOTE: Method does not modify image.
-    def __detect_front_faces(self, image):
-        front_faces = list()
-        height, width = image.shape[:2]
-        front_faces.append((0, 0, height, width))
-        return front_faces
-
-    # Method for detecting profile faces on the image.
-    # Returns list of tuples with 4 ROI coordinates:
-    # x0, y0, x1,y1 - which bound face on the image.
-    # NOTE: Method does not modify image.
-    #
-    # TODO: might be useless. Test it later
-    def __detect_profile_faces(self, image):
-        front_faces = list()
-        height, width = image.shape[:2]
-        front_faces.append((0, 0, height, width))
-        return front_faces

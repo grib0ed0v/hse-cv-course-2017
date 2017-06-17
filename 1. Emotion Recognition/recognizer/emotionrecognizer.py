@@ -15,7 +15,5 @@ class EmotionRecognizer:
     # Method starts CNN and returns String with predicted Emotion
     # add logging!
     def recognize(self, image):
-        cv2.imshow('111', image)
         scaled_image = self.scale(image)
-        cv2.imshow('scale', scaled_image)
         return 'my emotion'

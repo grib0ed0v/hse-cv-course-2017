@@ -17,7 +17,7 @@ class FlowExecutor:
 
     # crop image of size
     def __crop(self, image, p1, p2):
-        return image[p1[1]:p2[1], p1[0]:p2[0], :]
+        return image[p1[0]:p2[0], p1[1]:p2[1], :]
 
     # add bounding box of appropriate color with emotions label
     def __add_labeled_bounding_box(self, image, predicted_emotion, pt1, pt2):
@@ -30,10 +30,10 @@ class FlowExecutor:
         faces = self.face_detector.detect_faces(image_copy)  # faces coordinates
 
         if faces is not None and len(faces) > 0:
-            for (h0, w0, h1, w1) in faces:
-                face = self.__crop(image_copy, (w0, h0), (w1, h1))
+            for (x, y, w, h) in faces:
+                face = self.__crop(image_copy, (x, y), (x + w, y + h))
                 predicted_emotion = self.emotion_recognizer.recognize(face)
-                self.__add_labeled_bounding_box(image, predicted_emotion, (w0, h0), (w1, h1))  # pass original image for bounding
+                self.__add_labeled_bounding_box(image, predicted_emotion, (x, y), (x + w, y + h))  # pass original image for bounding
         else:
             logging.warning('No face was found!')
 
