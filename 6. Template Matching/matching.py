@@ -12,11 +12,7 @@ def check_match(matches, threshold, txt):
     else:
         print str(txt) + " not found"
 
-#########################################
-#########################################
-#########################################
-# TODO put all that jazz inside function
-# Ideal Logo
+
 def load_etalon_query(_etalon_path,_query_path):
     _etalon = cv2.imread(_etalon_path)
     _query = cv2.imread(_query_path)
