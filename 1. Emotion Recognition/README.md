@@ -31,3 +31,12 @@ Program applies following command line arguments:
 
 If no arguments specified, application start working with videostream from default(0) device.  
 If both parameters(-i, -v) are specified or there is an issue with device or file, application will raise appropriate exception (IO or Illegal Argument).  
+
+---
+
+Prerequisites: 
+
+* Anaconda with Python 3 
+Download: https://www.continuum.io/downloads 
+* OpenCV 3.2 version to work with DNN module 
+To install: conda install -c conda-forge opencv=3.2.0
