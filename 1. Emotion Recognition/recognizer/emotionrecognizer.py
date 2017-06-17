@@ -31,5 +31,5 @@ class EmotionRecognizer:
         Emotion_Recognition_CNN.setBlob('.data', blob)
         Emotion_Recognition_CNN.forward('prob')
         predictions = Emotion_Recognition_CNN.getBlob("prob")
-        emotion = (self.emotions[prob.argmax()]))
+        emotion = (self.emotions[predictions.argmax()]))
         return emotion
