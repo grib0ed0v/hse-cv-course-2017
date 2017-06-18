@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 project(iad_facerec)
 
-SET(OpenCV_DIR /home/np/Stuff/opencv_root/_build)
+#SET(OpenCV_DIR /path/to/opencv/build)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

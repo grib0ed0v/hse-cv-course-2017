@@ -11,7 +11,7 @@ built with `face` module from [opencv\_contrib](https://github.com/opencv/opencv
 
 ### Linux
     mkdir _build && cd _build
-    cmake ..
+    cmake -DOpenCV_DIR=/path/to/your/opencv/build ..
     make
 
 ### Windows
