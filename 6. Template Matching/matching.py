@@ -1,6 +1,30 @@
 import cv2
 import numpy as np
 import drawMatches as dm
+import anotherCluster as acl
+import copy
+
+
+def get_points_from_matches(kp, matches):
+    points = []
+    for mat in matches:
+        # Get the matching keypoints for each of the images
+        img2_idx = mat.trainIdx
+
+        # x - columns
+        # y - rows
+        (x2,y2) = kp[img2_idx].pt
+        points.append((x2, y2))
+    return points
+
+
+def get_points(kp):
+    points = []
+    for mat in kp:
+        (x, y) = mat.pt
+        points.append((x, y))
+    return points
+
 
 def check_match(matches, threshold, txt):
     count = 0
@@ -44,6 +68,8 @@ def keypoints_match(_etalon,_query):
     return _kpc,_desc,_kpq,_desq,_src_pts,_dst_pts,_good_matches
 
 coke,query,C,gquery = load_etalon_query('pictures/C.jpg','pictures/C8.jpg')
+query2 = copy.copy(query)
+query3 = copy.copy(query)
 kpc,desc,kpq,desq,src_pts,dst_pts,good = keypoints_match(C,gquery)
 
 img1 = cv2.drawKeypoints(C,kpc,C)
@@ -68,3 +94,10 @@ cv2.imshow("query", img2)
 cv2.waitKey()
 
 dm.drawMatches(C, kpc, gquery, kpq, good)
+
+goodpoints = get_points_from_matches(kpq, good)
+points = get_points(kpq)
+pointsm, labelsm, n = acl.meanshift_clustering(goodpoints)
+pointsq, labelsq = acl.birch_clustering(points, n)
+acl.draw_clusters(query2, pointsq, labelsq)
+acl.draw_clusters(query3, pointsm, labelsm)
