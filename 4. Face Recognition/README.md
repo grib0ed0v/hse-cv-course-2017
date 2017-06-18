@@ -10,7 +10,7 @@ built with `face` module from [opencv\_contrib](https://github.com/opencv/opencv
 ## Building
 
 ### Linux
-    mkdir _build && cd build
+    mkdir _build && cd _build
     cmake ..
     make
 
