@@ -10,6 +10,8 @@ from starter.flowexecutor import FlowExecutor
 def __main__(argv):
     logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
 
+    logging.info("OpenCV version: %s", cv2.__version__)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="path to the image or folder")
     parser.add_argument("-v", "--video", help="path to the video or camera id", default=0)
