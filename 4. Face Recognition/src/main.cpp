@@ -2,16 +2,11 @@
 #include "face_recognizer.h"
 #include "face_detector.h"
 #include "util/log.h"
+#include "util/fsutil.h"
 
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-
-bool fileExists(const std::string& path)
-{
-	(void)path;
-	return false;
-}
 
 void videoLoop(cv::VideoCapture& cap, FaceDetector& detector, FaceRecognizer& recognizer)
 {
@@ -40,7 +35,7 @@ int main()
 {
 	std::string recognizerConfig = g_hardcodedDataset + "facerec_config";
 	FaceRecognizer facerec;
-	if (fileExists(recognizerConfig))
+	if (fs::pathExists(recognizerConfig))
 		facerec.load(recognizerConfig);
 	std::string mgrConfig;
 	DatasetManager mgr(mgrConfig);

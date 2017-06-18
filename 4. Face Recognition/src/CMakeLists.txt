@@ -12,6 +12,8 @@ set(SOURCES
 	dataset.cpp
 	util/log.h
 	util/log.cpp
+	util/fsutil.h
+	util/fsutil.cpp
 )
 
 find_package(OpenCV REQUIRED)
