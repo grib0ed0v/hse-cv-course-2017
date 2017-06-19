@@ -19,7 +19,8 @@ set(SOURCES
 find_package(OpenCV REQUIRED)
 
 add_executable(iad_facerec ${SOURCES})
-target_link_libraries(iad_facerec
+
+set(OPENCV_LIBS
 	opencv_core 
 	opencv_videoio 
 	opencv_highgui 
@@ -28,3 +29,19 @@ target_link_libraries(iad_facerec
 	opencv_face 
 	opencv_objdetect
 )
+
+target_link_libraries(iad_facerec
+	${OPENCV_LIBS}
+)
+
+IF (WIN32)
+	set (LIB_SUFFIX $<$<CONFIG:Debug>:d>$<$<CONFIG:RelWithDebInfo>:d>)
+	set (LIB_PATH ${OpenCV_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:RelWithDebInfo>:Debug>$<$<CONFIG:Release>:Release>)
+	set (LIB_VER ${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH})
+
+	foreach(libname ${OPENCV_LIBS})
+		add_custom_command(TARGET iad_facerec POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LIB_PATH}/${libname}${LIB_VER}${LIB_SUFFIX}.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>
+		)
+	endforeach()
+ENDIF()

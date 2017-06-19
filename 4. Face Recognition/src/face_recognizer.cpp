@@ -2,9 +2,6 @@
 
 #include "util/log.h"
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/face.hpp>
-
 FaceRecognizer::FaceRecognizer()
 {
 	m_facerec = cv::face::createLBPHFaceRecognizer();
@@ -25,7 +22,8 @@ void FaceRecognizer::train(Dataset&& dataset)
 {
 	m_dataset = dataset;
 	if (m_dataset.images().empty()) {
-		logWarning() << "Empty dataset passed to FaceRecognizer";
+		logError() << "Empty dataset passed to FaceRecognizer";
+		return;
 	}
 
 	m_facerec->train(dataset.images(), dataset.labels());
@@ -46,7 +44,7 @@ std::string FaceRecognizer::predict(cv::Mat image) const
 	double confidence = 0.0;
 	label_t label = -1;
 	m_facerec->predict(image, label, confidence);
-	std::string s =  m_facerec->getLabelInfo(label);
+	std::string s = m_facerec->getLabelInfo(label);
 	s += " ";
 	s += std::to_string(confidence);
 	return s;

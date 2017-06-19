@@ -1,6 +1,7 @@
 #pragma once
 
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -14,7 +15,7 @@ public:
 	void addImages(const std::string& str, const std::vector<cv::Mat>& images);
 	void setLabelString(label_t label, const std::string& str);
 	
-	int labelCount() const { return m_labelToString.size(); }
+	int labelCount() const { return (int)m_labelToString.size(); }
 
 	const std::vector<cv::Mat>& images() const { return m_images; }
 	const std::vector<label_t>& labels() const { return m_labels; }

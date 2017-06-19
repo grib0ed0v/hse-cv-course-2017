@@ -9,13 +9,7 @@ built with `face` module from [opencv\_contrib](https://github.com/opencv/opencv
 ----
 ## Building
 
-### Linux
+### Linux and Windows
     mkdir _build && cd _build
     cmake -DOpenCV_DIR=/path/to/your/opencv/build ..
-    make
-
-### Windows
-(TODO)
-
-1. Install Linux
-2. Use steps for Linux
+    cmake --build .

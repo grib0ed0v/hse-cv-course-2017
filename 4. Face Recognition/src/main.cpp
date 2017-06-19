@@ -4,9 +4,7 @@
 #include "util/log.h"
 #include "util/fsutil.h"
 
-#include <opencv2/videoio.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 void videoLoop(cv::VideoCapture& cap, FaceDetector& detector, FaceRecognizer& recognizer)
 {
@@ -43,8 +41,11 @@ int main()
 	mgr.load(g_hardcodedDataset);
 	if (mgr.datasetChanged()) {
 		facerec.train(mgr.readDataset());
-		facerec.save(recognizerConfig);
-		mgr.saveConfig(mgrConfig);
+		if (facerec.ready())
+		{
+			facerec.save(recognizerConfig);
+			mgr.saveConfig(mgrConfig);
+		}
 	}
 
 	if (!facerec.ready()) {
@@ -66,4 +67,3 @@ int main()
 	//facerec.save(recognizerConfig);
 	return 0;
 }
-

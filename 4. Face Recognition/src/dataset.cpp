@@ -1,4 +1,5 @@
 #include "dataset.h"
+#include <iterator>
 
 void Dataset::addImages(label_t label, const std::vector<cv::Mat>& images)
 {
