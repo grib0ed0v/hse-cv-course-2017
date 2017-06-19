@@ -1,5 +1,5 @@
 # Class describes sequence of processor, which should be applied to the image
-#import cv2
+import cv2
 import logging
 
 
@@ -14,5 +14,6 @@ class ProcessorChain:
             logging.info('Start: %s', p.__class__.__name__)
             p.process(image)
             logging.info('Finished: %s', p.__class__.__name__)
-            # cv2.imshow(p.__class__.__name__, image)  # debug output
+            if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+                cv2.imshow(p.__class__.__name__, image)
         return image

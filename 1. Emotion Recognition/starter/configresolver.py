@@ -1,6 +1,7 @@
 import configparser
 import logging
 
+from preprocessor.facedetector import FaceDetector
 from preprocessor.processor.impl.color import ColorProcessor
 from preprocessor.processor.impl.noise import NoiseProcessor
 from preprocessor.processor.impl.tonal import TonalProcessor
@@ -11,6 +12,16 @@ class ConfigResolver:
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read('./resources/config.ini')
+
+    def get_face_detector(self):
+        if not self.config.has_section('FaceDetector'):
+            raise ValueError('No FaceDetector configuration!')
+        else:
+            scaleFactor = self.config.getfloat('FaceDetector', 'scaleFactor', fallback=1.3)
+            minNeighbors = self.config.getint('FaceDetector', 'minNeighbors', fallback=4)
+            minSize_x = self.config.getint('FaceDetector', 'minSize_x', fallback=40)
+            minSize_y = self.config.getint('FaceDetector', 'minSize_y', fallback=40)
+            return FaceDetector(scaleFactor, minNeighbors, (minSize_x, minSize_y))
 
     def get_processor_chain(self):
         chain_description = self.config.get('ProcessorChain', 'chain', fallback=None)
