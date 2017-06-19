@@ -21,20 +21,21 @@ def dbscan_clustering(points):
     # Number of clusters in labels, ignoring noise if present.
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print('Estimated number of clusters: %d' % n_clusters_)
-    return points, labels
+    return labels, n_clusters_
 
 def meanshift_clustering(points):
     point1 = np.array(points)
     bandwidth = estimate_bandwidth(point1, quantile=0.1, n_samples=1000)
+    if bandwidth <= 0.0 or bandwidth is None:
+        return None, None
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(points)
     labels = ms.labels_
-    cluster_centers = ms.cluster_centers_
-    labels_unique = np.unique(labels)
+
     # Number of clusters in labels, ignoring noise if present.
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print('Estimated number of clusters: %d' % n_clusters_)
-    return points, labels, n_clusters_
+    return labels, n_clusters_
 
 def affpropagation_clustering(points):
     af = AffinityPropagation(preference=-50000).fit(points)
@@ -61,11 +62,9 @@ def draw_clusters(img, points, labels):
             col = 'k'
         class_member_mask = (labels == k)
         xy = [points[I] for I in range(len(labels)) if class_member_mask[I] == True]
-        print str(k) + str(xy)
         xs = [x[0] for x in xy]
         ys = [x[1] for x in xy]
         color = random_color()
-        print color
         for i in range(len(xs)):
             cv2.circle(img, (int(xs[i]), int(ys[i])), 5, color, 3)
     cv2.imshow('ololo', img)
