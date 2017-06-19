@@ -1,20 +1,40 @@
 #include "dataset_manager.h"
 
 #include "util/log.h"
+#include "util/fsutil.h"
 
 #include <opencv2/imgcodecs.hpp>
 #include <array>
 
+void DatasetManager::readConfig(const std::string& configPath)
+{
+	cv::FileStorage fileStorage(configPath, cv::FileStorage::READ);
+	if (fileStorage.isOpened()) {
+		fileStorage["datasetFolder"] >> m_datasetFolder;
+	}
+}
+
+void DatasetManager::saveConfig(const std::string& configPath)
+{
+	cv::FileStorage fileStorage(configPath, cv::FileStorage::WRITE);
+	fileStorage << "datasetFolder" << m_datasetFolder;
+}
+
 void DatasetManager::load(const std::string& datasetFolder)
 {
-	m_datasetFolder = datasetFolder;
-	if (!m_datasetFolder.empty() && m_datasetFolder.back() != '/')
-		m_datasetFolder += '/';
+	if (m_datasetFolder != datasetFolder) {
+		m_datasetChanged = true;
+		m_datasetFolder = datasetFolder;
+	}
+	if (datasetFolder.empty()) {
+		logError() << "Empty string passed to DatasetManager::load";
+		return;
+	}
 }
 
 bool DatasetManager::datasetChanged()
 {
-	return true;
+	return m_datasetChanged;
 }
 
 Dataset DatasetManager::readDataset()
@@ -25,37 +45,38 @@ Dataset DatasetManager::readDataset()
 		return data;
 	}
 
-	// TODO: Hardocoded part, need to change it
-	struct FolderInfo
-	{
-		size_t count;
-		std::string ext;
-		std::string str;
-	};
-	const size_t folderCount = 4;
-	const std::array<FolderInfo, folderCount> folders = {
-		FolderInfo{10, "pgm", "Test Test"},
-		FolderInfo{7, "jpg", "N P"},
-		FolderInfo{10, "pgm", "Foo Bar"},
-		FolderInfo{8, "jpg", "A Ya"}
-	};
-
 	label_t curLabel = 1;
-	size_t curFolder = 1;
 	std::vector<cv::Mat> images;
-	for (const FolderInfo& folder : folders) {
-		for (size_t imgIdx = 1; imgIdx <= folder.count; ++imgIdx) {
-			std::string imgname = m_datasetFolder + std::to_string(curFolder) + "/" + std::to_string(imgIdx) + "." + folder.ext;
-			cv::Mat image = cv::imread(imgname, cv::IMREAD_GRAYSCALE);
+	std::vector<std::string> datasetContent = fs::getFilesInDir(m_datasetFolder);
+	auto removeIt = std::remove_if(datasetContent.begin(), datasetContent.end(),
+	[this](const std::string& path)
+	{
+		return !fs::isDir(fs::concatPath(m_datasetFolder, path));
+	});
+	datasetContent.erase(removeIt, datasetContent.end());
+
+	if (datasetContent.empty()) {
+		logError() << "Empty datset:" << m_datasetFolder;
+	}
+
+	for (const std::string& folderName : datasetContent) {
+		std::string folderPath = fs::concatPath(m_datasetFolder, folderName);
+		std::vector<std::string> folderContent = fs::getFilesInDir(folderPath);
+		if (folderContent.empty()) {
+			logWarning() << "Empty folder:" << folderPath;
+			continue;
+		}
+		for (const std::string imgName : folderContent) {
+			std::string imgPath = fs::concatPath(folderPath, imgName);
+			cv::Mat image = cv::imread(imgPath, cv::IMREAD_GRAYSCALE);
 			if (image.data == nullptr) {
-				logError() << "Could not read" << imgname;
+				logError() << "Could not read" << imgPath;
 				continue;
 			}
 			images.push_back(image);
 		}
 		data.addImages(curLabel, images);
-		data.setLabelString(curLabel, folder.str);
-		++curFolder;
+		data.setLabelString(curLabel, folderName);
 		++curLabel;
 	}
 	return data;

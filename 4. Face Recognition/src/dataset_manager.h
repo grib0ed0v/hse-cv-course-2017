@@ -8,10 +8,8 @@
 class DatasetManager
 {
 public:
-	DatasetManager(const std::string& configPath)
-	{
-		(void)configPath;
-	}
+	void readConfig(const std::string& configPath);
+	void saveConfig(const std::string& configPath);
 
 	void load(const std::string& datasetFolder);
 	bool datasetChanged();
@@ -19,4 +17,5 @@ public:
 
 private:
 	std::string m_datasetFolder;
+	bool m_datasetChanged = false;
 };

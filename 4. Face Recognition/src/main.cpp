@@ -37,11 +37,15 @@ int main()
 	FaceRecognizer facerec;
 	if (fs::pathExists(recognizerConfig))
 		facerec.load(recognizerConfig);
-	std::string mgrConfig;
-	DatasetManager mgr(mgrConfig);
+	DatasetManager mgr;
+	std::string mgrConfig = fs::concatPath(g_hardcodedDataset, "mgr_config.xml");
+	mgr.readConfig(mgrConfig);
 	mgr.load(g_hardcodedDataset);
-	if (mgr.datasetChanged())
+	if (mgr.datasetChanged()) {
 		facerec.train(mgr.readDataset());
+		facerec.save(recognizerConfig);
+		mgr.saveConfig(mgrConfig);
+	}
 
 	if (!facerec.ready()) {
 		logError() << "Failed to start face recognizer!";

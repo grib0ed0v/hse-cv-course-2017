@@ -31,7 +31,7 @@ std::vector<std::string> getFilesInDir(const std::string& path)
 		return result;
 	dirent* pDirent = nullptr;
 	while((pDirent = readdir(pDir))) {
-		if (std::string("..") == pDirent->d_name)
+		if (std::string(".") == pDirent->d_name || std::string("..") == pDirent->d_name)
 			continue;
 		result.push_back(pDirent->d_name);
 	}
