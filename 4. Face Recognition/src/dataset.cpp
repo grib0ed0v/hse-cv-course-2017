@@ -12,8 +12,10 @@ void Dataset::addImages(label_t label, const std::vector<cv::Mat>& images)
 void Dataset::addImages(const std::string& str, const std::vector<cv::Mat>& images)
 {
 	label_t strLabel = labelByString(str);
-	if (strLabel < 0)
+	if (strLabel < 0) {
 		strLabel = labelCount();
+		setLabelString(strLabel, str);
+	}
 	addImages(strLabel, images);
 }
 

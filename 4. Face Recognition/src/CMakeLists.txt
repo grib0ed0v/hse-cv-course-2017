@@ -1,5 +1,7 @@
 set(SOURCES
 	main.cpp
+	webcam_ui.h
+	webcam_ui.cpp
 	dataset_manager.cpp
 	dataset_manager.h
 	face_detector.cpp

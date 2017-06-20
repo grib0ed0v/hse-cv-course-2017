@@ -1,30 +1,12 @@
 #include "dataset_manager.h"
 #include "face_recognizer.h"
 #include "face_detector.h"
+#include "webcam_ui.h"
 #include "util/log.h"
 #include "util/fsutil.h"
 #include "util/argparser.h"
 
 #include <opencv2/opencv.hpp>
-
-void videoLoop(cv::VideoCapture& cap, FaceDetector& detector, FaceRecognizer& recognizer)
-{
-	while (true) {
-		cv::Mat frame;
-		cap >> frame;
-		std::vector<FaceDetector::FaceRegion> faces = detector.detect(frame);
-		for (const auto& face : faces) {
-			cv::rectangle(frame, face.rect, cv::Scalar(0, 255, 0));
-			std::string pred = recognizer.predict(face.image);
-			int pos_x = std::max(face.rect.tl().x - 10, 0);
-			int pos_y = std::max(face.rect.tl().y - 10, 0);
-			putText(frame, pred, cv::Point(pos_x, pos_y), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0,255,0), 2);
-		}
-		cv::imshow("frame", frame);
-		static const int KEY_ESC = 27;
-		if (cv::waitKey(10) == KEY_ESC) break;
-	}
-}
 
 struct ProgramParams
 {
@@ -200,7 +182,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	logInfo() << "Press ESC to exit";
-	videoLoop(cap, detector, facerec);
+
+	WebcamUI ui("frame", cap, detector, facerec);
+	ui.videoLoop();
 
 	writeProgramFolders(config, "folders.xml");
 	return 0;
