@@ -1,1 +1,1 @@
-branch name - panorama_stitching
+Requirements: Python 2.7.9, OpenCV 2.4.13
