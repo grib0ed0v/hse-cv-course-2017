@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
-import sys
 import os
 from sklearn import svm
 
@@ -137,7 +135,7 @@ def delete_components(curr_img, color, part_1, part_2):
     S = size1 * size2
     S0 = curr_size[0] * curr_size[1]
     if ((S < part_1 * S0) | (S > part_2 * S0) | (min_w < 3) | (max_w > curr_size[0] - 3) | (min_h < 3) | (
-        max_h > curr_size[1] - 3)):
+                max_h > curr_size[1] - 3)):
         for l in list:
             img[l[0]][l[1]] = 255
     return img
@@ -165,12 +163,14 @@ def diagonal_feature(img):
             diag_features.append(np.average(list_average))
     return np.concatenate((diag_features, averages_features), axis=0)
 
+
 def haar_features(img):
     new_img = img.copy()
     new_img = cv2.resize(new_img, (60, 90), interpolation=cv2.INTER_LINEAR)
     haar1 = np.average(new_img[0:45, 30:60] - new_img[45:90, 30:60])
     haar2 = np.average(new_img[0:45, 0:30] - new_img[45:90, 0:30])
     return haar1, haar2
+
 
 def hist_features(img):
     new_img = img.copy()
@@ -182,25 +182,28 @@ def hist_features(img):
             square = new_img[y:y + step, x:x + step]
             square_features = cv2.calcHist([square], [0], None, [9], [0, 256])
             for i in range(9):
-              histogramm_features.append(square_features[i][0])
+                histogramm_features.append(square_features[i][0])
     return histogramm_features
+
 
 def get_features(img):
     diag_features = diagonal_feature(img)
     haar1, haar2 = haar_features(img)
     histogramm_features = hist_features(img)
     features = [haar1, haar2]
-    features = np.concatenate((features, np.concatenate((diag_features, histogramm_features), axis = 0)), axis = 0)
+    features = np.concatenate((features, np.concatenate((diag_features, histogramm_features), axis=0)), axis=0)
     return features
 
+
+# TODO Merge with test_preprocessing function
 def train_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
     circles = find_circles(grey_img)
     # form rectangles from ellipsoids
-    # ДАША?!, ОЛЯ: В RECTANGLES НУЖНО ЗАПИСАТЬ ВЫДЕЛЕННЫЕ ИЗОБРАЖЕНИЯ
+    # DASHA?!, OLYA: V RECTANGLES NUZHNO ZAPISAT VYDELLENNYE IMAGES
     rectangles = rect_img(circles, grey_img)
     thresholds = []
-    #Цикл до 1!!!
+    # Loop to 1!!!
     for i in range(1):
         rect_size = rectangles[i].shape
         a = rect_size[0]
@@ -217,7 +220,7 @@ def train_preprocessing(original_img):
         # cv2.imshow('Threshold: {}'.format(i), thresholds[i])
 
     res = []
-    #Цикл до 1!!!
+    # Loop to 1!!!
     for i in range(1):
         curr_img = thresholds[i].copy()
         # delete contour
@@ -247,119 +250,12 @@ def train_preprocessing(original_img):
                         cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
     return get_features(res[0])
 
-def train_preprocessing(original_img):
-    grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    circles = find_circles(grey_img)
-    # form rectangles from ellipsoids
-    # ДАША?!, ОЛЯ: В RECTANGLES НУЖНО ЗАПИСАТЬ ВЫДЕЛЕННЫЕ ИЗОБРАЖЕНИЯ
-    rectangles = rect_img(circles, grey_img)
-    thresholds = []
-    #Цикл до 1!!!
-    for i in range(1):
-        rect_size = rectangles[i].shape
-        a = rect_size[0]
-        b = rect_size[1]
-        rectangles[i] = rectangles[i][int(0.1 * a): int(0.7 * a), int(0.15 * b): int(0.75 * b)]
-        # cv2.imshow('Cut: {}'.format(i), rectangles[i])
-        rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
-        # cv2.imshow('Canny: {}'.format(i), rectangles[i])
-        ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
-        # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
-        # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
-        # cv2.imshow('Morph: {}'.format(i), rectangles[i])
-        thresholds.append(adaptive_thresholding(rectangles[i]))
-        # cv2.imshow('Threshold: {}'.format(i), thresholds[i])
-
-    res = []
-    #Цикл до 1!!!
-    for i in range(1):
-        curr_img = thresholds[i].copy()
-        # delete contour
-        part_1 = 0.025
-        part_2 = 0.3
-        res1 = curr_img.copy()
-        res2 = curr_img.copy()
-        new_img1 = res1
-        new_img2 = res2
-        # Delete components
-        while (len(res1) != 0):
-            res1 = delete_components(res1, 128, part_1, part_2)
-            if (len(res1) != 0):
-                new_img1 = res1.copy()
-                # if (new_img1 != []):
-                # cv2.imshow('Image1: {}'.format(i), new_img1)
-        # Inverse the image and delete components
-        ret, res2 = cv2.threshold(res2, 127, 255, cv2.THRESH_BINARY_INV)
-        while (len(res2) != 0):
-            res2 = delete_components(res2, 128, part_1, part_2)
-            if (len(res2) != 0):
-                new_img2 = res2.copy()
-                # if (new_img2 != []):
-                # cv2.imshow('Image2: {}'.format(i), new_img2)
-        # Result
-        res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
-                        cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
-    return get_features(res[0])
-
-def train_preprocessing(original_img):
-    grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    circles = find_circles(grey_img)
-    # form rectangles from ellipsoids
-    # ДАША?!, ОЛЯ: В RECTANGLES НУЖНО ЗАПИСАТЬ ВЫДЕЛЕННЫЕ ИЗОБРАЖЕНИЯ
-    rectangles = rect_img(circles, grey_img)
-    thresholds = []
-    #Цикл до 1!!!
-    for i in range(1):
-        rect_size = rectangles[i].shape
-        a = rect_size[0]
-        b = rect_size[1]
-        rectangles[i] = rectangles[i][int(0.1 * a): int(0.7 * a), int(0.15 * b): int(0.75 * b)]
-        # cv2.imshow('Cut: {}'.format(i), rectangles[i])
-        rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
-        # cv2.imshow('Canny: {}'.format(i), rectangles[i])
-        ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
-        # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
-        # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
-        # cv2.imshow('Morph: {}'.format(i), rectangles[i])
-        thresholds.append(adaptive_thresholding(rectangles[i]))
-        # cv2.imshow('Threshold: {}'.format(i), thresholds[i])
-
-    res = []
-    #Цикл до 1!!!
-    for i in range(1):
-        curr_img = thresholds[i].copy()
-        # delete contour
-        part_1 = 0.025
-        part_2 = 0.3
-        res1 = curr_img.copy()
-        res2 = curr_img.copy()
-        new_img1 = res1
-        new_img2 = res2
-        # Delete components
-        while (len(res1) != 0):
-            res1 = delete_components(res1, 128, part_1, part_2)
-            if (len(res1) != 0):
-                new_img1 = res1.copy()
-                # if (new_img1 != []):
-                # cv2.imshow('Image1: {}'.format(i), new_img1)
-        # Inverse the image and delete components
-        ret, res2 = cv2.threshold(res2, 127, 255, cv2.THRESH_BINARY_INV)
-        while (len(res2) != 0):
-            res2 = delete_components(res2, 128, part_1, part_2)
-            if (len(res2) != 0):
-                new_img2 = res2.copy()
-                # if (new_img2 != []):
-                # cv2.imshow('Image2: {}'.format(i), new_img2)
-        # Result
-        res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
-                        cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
-    return get_features(res[0])
 
 def test_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
     circles = find_circles(grey_img)
     # form rectangles from ellipsoids
-    # ДАША?!, ОЛЯ: В RECTANGLES НУЖНО ЗАПИСАТЬ ВЫДЕЛЕННЫЕ ИЗОБРАЖЕНИЯ
+    # DAShA?!, OLJa: V RECTANGLES NUZhNO ZAPISAT'' VYDELENNYE IZOBRAZhENIJa
     rectangles = rect_img(circles, grey_img)
     thresholds = []
     for i in range(len(rectangles)):
@@ -411,27 +307,35 @@ def test_preprocessing(original_img):
         X.append(get_features(res[i]))
     return X
 
+
 def train_samples(path):
     labels = []
-    X = []
-    os.listdir(path)
-    # labels.append(folder_name)
-    return X, labels
+    x = []
+    for folder_name in os.listdir(path):
+        # Process only folders
+        if os.path.isdir(os.path.join(path, folder_name)):
+            for img_filename in os.listdir(os.path.join(path, folder_name)):
+                img = cv2.imread(os.path.join(path, folder_name, img_filename))
+                x.append(train_preprocessing(img))
+                labels.append(folder_name)
+    return x, labels
+
 
 def main():
-    path = ''
+    path = 'train_data'  # TODO Set up actual path to train images folder
     img = []
-    X, y = train_samples(path)
-    clf = svm.SVC(kernel= 'rbf', C = 30, gamma = 0.026)
-    clf.fit(X, y)
+    x, y = train_samples(path)
+    clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
+    clf.fit(x, y)
 
-    X_test = test_preprocessing(img)
+    x_test = test_preprocessing(img)
     y_test = []
-    for i in range(len(X_test)):
-        y_test.append(clf.predict(X_test[i]))
-    sum = np.sum(y_test)
-    print(sum)
-    cv2.waitKey();
+    for i in range(len(x_test)):
+        y_test.append(clf.predict(x_test[i]))
+    y_sum = np.sum(y_test)  # Renamed from sum to avoid overriding python sum func
+    print(y_sum)
+    cv2.waitKey()
 
 
-main()
+if __name__ == '__main__':
+    main()
