@@ -3,6 +3,7 @@
 #include "face_detector.h"
 #include "util/log.h"
 #include "util/fsutil.h"
+#include "util/argparser.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -25,15 +26,86 @@ void videoLoop(cv::VideoCapture& cap, FaceDetector& detector, FaceRecognizer& re
 	}
 }
 
-struct ProgramFolders
+struct ProgramParams
 {
 	std::string configFolder;
 	std::string datasetFolder;
+	bool retrain = false;
 };
 
-ProgramFolders readProgramFolders(const std::string& path)
+enum ProgramArgIds
 {
-	ProgramFolders programFolders;
+	ConfigFolder,
+	Dataset,
+	Retrain,
+};
+
+std::vector<ArgParser::Arg> g_programArgs = {
+	{
+		ProgramArgIds::ConfigFolder,
+		"c",
+		"config",
+		"Folder with configuration files",
+		true
+	},
+	{
+		ProgramArgIds::Dataset,
+		"d",
+		"dataset",
+		"Folder with images for training",
+		true
+	},
+	{
+		ProgramArgIds::Retrain,
+		"r",
+		"retrain",
+		"Disregard stored model and train recognizer again",
+		false
+	},
+};
+
+class ProgramArgParser : public ArgParser
+{
+public:
+	ProgramArgParser()
+	{
+		setArgInfo(g_programArgs);
+	}
+
+	ProgramParams params() { return m_params; }
+
+protected:
+	virtual bool processArg(const Arg& arg, const char* param) override
+	{
+		switch (arg.id)
+		{
+		case ConfigFolder:
+			m_params.configFolder = param;
+			break;
+
+		case Dataset:
+			m_params.datasetFolder = param;
+			break;
+
+		case Retrain:
+			m_params.retrain = true;
+			break;
+
+		default:
+			return false;
+		}
+		return true;
+	};
+
+private:
+	ProgramParams m_params;
+};
+
+ProgramArgParser g_argParser;
+
+ProgramParams readProgramFolders(const std::string& path)
+{
+	ProgramParams programFolders;
 	cv::FileStorage fileStorage(path, cv::FileStorage::READ);
 	if (!fileStorage.isOpened())
 		return programFolders;
@@ -43,51 +115,67 @@ ProgramFolders readProgramFolders(const std::string& path)
 	return programFolders;
 }
 
-void writeProgramFolders(const ProgramFolders& config, const std::string& path)
+void writeProgramFolders(const ProgramParams& config, const std::string& path)
 {
 	cv::FileStorage fileStorage(path, cv::FileStorage::WRITE);
 	fileStorage << "configFolder" << config.configFolder;
 	fileStorage << "datasetFolder" << config.datasetFolder;
 }
 
-int main(int argc, const char* argv[])
+ProgramParams prepareParams(int argc, char* argv[])
 {
-	ProgramFolders config;
-	if (argc < 3) {
-		config = readProgramFolders("folders.xml");
-		if (!config.configFolder.empty()) {
-			logInfo() << "Using config folder:" << config.configFolder;
-			logInfo() << "Using dataset folder:" << config.datasetFolder;
-		}
-	} else {
-		config.configFolder = argv[1];
-		config.datasetFolder = argv[2];
+	ProgramParams config;
+	size_t invalidArgIdx = g_argParser.parseArgs(argc - 1, argv + 1);
+	if (invalidArgIdx != 0) {
+		logError() << "Invalid argument:" << argv[invalidArgIdx];
+		exit(1);
+	}
+	config = g_argParser.params();
+
+	ProgramParams storedFolders = readProgramFolders("folders.xml");
+	if (config.configFolder.empty()) {
+		config.configFolder = storedFolders.configFolder;
+	}
+	if (config.datasetFolder.empty()) {
+		config.datasetFolder = storedFolders.datasetFolder;
 	}
 
 	if (config.configFolder.empty()) {
-		logInfo() << "On first usage pass two params:";
-		logInfo() << argv[0] << "config_folder dataset_folder";
+		logInfo() << g_argParser.generateUsageMessage(argv[0]);
 		logError() << "No config folder, aborting";
-		return 1;
+		exit(1);
 	}
 
 	if (!fs::isDir(config.configFolder)) {
 		logError() << "Invalid config folder:" << config.configFolder;
-		return 1;
+		exit(1);
 	}
+	return config;
+}
+
+int main(int argc, char* argv[])
+{
+	ProgramParams config = prepareParams(argc, argv);
+
+	logInfo() << "Config folder:" << config.configFolder;
+	logInfo() << "Dataset folder:" << (config.datasetFolder.empty() ? "(empty)" : config.datasetFolder);
 
 	std::string recognizerConfig = fs::concatPath(config.configFolder, "facerec_config");
 	FaceRecognizer facerec;
-	if (fs::pathExists(recognizerConfig)) {
+	if (!config.retrain && fs::pathExists(recognizerConfig)) {
 		logInfo() << "Loading pre-trained model from" << recognizerConfig;
 		facerec.load(recognizerConfig);
+	}
+	if (config.retrain && config.datasetFolder.empty()) {
+		logError() << "Can't train recognizer because dataset folder is not specified!";
+		return 1;
 	}
 	if (!config.datasetFolder.empty()) {
 		DatasetManager mgr;
 		std::string mgrConfig = fs::concatPath(config.configFolder, "mgr_config.xml");
 		mgr.readConfig(mgrConfig);
 		mgr.load(config.datasetFolder);
-		if (mgr.datasetChanged() || !facerec.ready()) {
+		if (config.retrain || mgr.datasetChanged() || !facerec.ready()) {
 			logInfo() << "Training recognizer...";
 			facerec.train(mgr.readDataset());
 			logInfo() << "Done";

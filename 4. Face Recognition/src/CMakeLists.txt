@@ -14,6 +14,8 @@ set(SOURCES
 	util/log.cpp
 	util/fsutil.h
 	util/fsutil.cpp
+	util/argparser.h
+	util/argparser.cpp
 )
 
 find_package(OpenCV REQUIRED)
