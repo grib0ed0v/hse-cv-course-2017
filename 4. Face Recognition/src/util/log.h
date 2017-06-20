@@ -5,7 +5,7 @@
 #define ENABLE_LOGGING 1
 
 #if(ENABLE_LOGGING)
-#define logInfo() Logger(Logger::LogLevel::Info, "Info")
+#define logInfo() Logger(Logger::LogLevel::Info)
 #define logWarning() Logger(Logger::LogLevel::Warning, "Warning")
 #define logError() Logger(Logger::LogLevel::Error, "Error")
 #define logDebug() Logger(Logger::LogLevel::Debug, "DEBUG", __FILE__, __LINE__)

@@ -25,26 +25,76 @@ void videoLoop(cv::VideoCapture& cap, FaceDetector& detector, FaceRecognizer& re
 	}
 }
 
-const std::string g_hardcodedRoot = "/home/np/Stuff/hse-cv-course-2017/4. Face Recognition";
-const std::string g_hardcodedDataset = g_hardcodedRoot + "/_data/";
-const std::string g_hardcodedData = g_hardcodedRoot + "/data/";
-
-int main()
+struct ProgramFolders
 {
-	std::string recognizerConfig = g_hardcodedDataset + "facerec_config";
+	std::string configFolder;
+	std::string datasetFolder;
+};
+
+ProgramFolders readProgramFolders(const std::string& path)
+{
+	ProgramFolders programFolders;
+	cv::FileStorage fileStorage(path, cv::FileStorage::READ);
+	if (!fileStorage.isOpened())
+		return programFolders;
+
+	programFolders.configFolder = (std::string)fileStorage["configFolder"];
+	programFolders.datasetFolder = (std::string)fileStorage["datasetFolder"];
+	return programFolders;
+}
+
+void writeProgramFolders(const ProgramFolders& config, const std::string& path)
+{
+	cv::FileStorage fileStorage(path, cv::FileStorage::WRITE);
+	fileStorage << "configFolder" << config.configFolder;
+	fileStorage << "datasetFolder" << config.datasetFolder;
+}
+
+int main(int argc, const char* argv[])
+{
+	ProgramFolders config;
+	if (argc < 3) {
+		config = readProgramFolders("folders.xml");
+		if (!config.configFolder.empty()) {
+			logInfo() << "Using config folder:" << config.configFolder;
+			logInfo() << "Using dataset folder:" << config.datasetFolder;
+		}
+	} else {
+		config.configFolder = argv[1];
+		config.datasetFolder = argv[2];
+	}
+
+	if (config.configFolder.empty()) {
+		logInfo() << "On first usage pass two params:";
+		logInfo() << argv[0] << "config_folder dataset_folder";
+		logError() << "No config folder, aborting";
+		return 1;
+	}
+
+	if (!fs::isDir(config.configFolder)) {
+		logError() << "Invalid config folder:" << config.configFolder;
+		return 1;
+	}
+
+	std::string recognizerConfig = fs::concatPath(config.configFolder, "facerec_config");
 	FaceRecognizer facerec;
-	if (fs::pathExists(recognizerConfig))
+	if (fs::pathExists(recognizerConfig)) {
+		logInfo() << "Loading pre-trained model from" << recognizerConfig;
 		facerec.load(recognizerConfig);
-	DatasetManager mgr;
-	std::string mgrConfig = fs::concatPath(g_hardcodedDataset, "mgr_config.xml");
-	mgr.readConfig(mgrConfig);
-	mgr.load(g_hardcodedDataset);
-	if (mgr.datasetChanged()) {
-		facerec.train(mgr.readDataset());
-		if (facerec.ready())
-		{
-			facerec.save(recognizerConfig);
-			mgr.saveConfig(mgrConfig);
+	}
+	if (!config.datasetFolder.empty()) {
+		DatasetManager mgr;
+		std::string mgrConfig = fs::concatPath(config.configFolder, "mgr_config.xml");
+		mgr.readConfig(mgrConfig);
+		mgr.load(config.datasetFolder);
+		if (mgr.datasetChanged() || !facerec.ready()) {
+			logInfo() << "Training recognizer...";
+			facerec.train(mgr.readDataset());
+			logInfo() << "Done";
+			if (facerec.ready()) {
+				facerec.save(recognizerConfig);
+				mgr.saveConfig(mgrConfig);
+			}
 		}
 	}
 
@@ -53,7 +103,7 @@ int main()
 		return 1;
 	}
 
-	std::string detectorConfig = g_hardcodedData + "haarcascades";
+	std::string detectorConfig = "haarcascades";
 	FaceDetector detector(detectorConfig);
 
 	cv::VideoCapture cap(0);
@@ -64,6 +114,6 @@ int main()
 	logInfo() << "Press ESC to exit";
 	videoLoop(cap, detector, facerec);
 
-	//facerec.save(recognizerConfig);
+	writeProgramFolders(config, "folders.xml");
 	return 0;
 }

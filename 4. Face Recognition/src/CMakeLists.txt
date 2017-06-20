@@ -21,17 +21,26 @@ find_package(OpenCV REQUIRED)
 add_executable(iad_facerec ${SOURCES})
 
 set(OPENCV_LIBS
-	opencv_core 
-	opencv_videoio 
-	opencv_highgui 
-	opencv_imgproc 
-	opencv_imgcodecs 
-	opencv_face 
+	opencv_core
+	opencv_videoio
+	opencv_highgui
+	opencv_imgproc
+	opencv_imgcodecs
+	opencv_face
 	opencv_objdetect
 )
 
 target_link_libraries(iad_facerec
 	${OPENCV_LIBS}
+)
+
+file (GLOB CASCADES
+	"${CMAKE_SOURCE_DIR}/data/haarcascades/*.xml"
+)
+
+add_custom_command(TARGET iad_facerec POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/haarcascades
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CASCADES} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/haarcascades
 )
 
 IF (WIN32)
