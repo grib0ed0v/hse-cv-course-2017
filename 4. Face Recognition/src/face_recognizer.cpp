@@ -35,8 +35,13 @@ void FaceRecognizer::train(Dataset&& dataset)
 
 void FaceRecognizer::update(Dataset& newData)
 {
-	// TODO
-	(void)newData;
+	int oldLabelCount = m_dataset.labelCount();
+	std::vector<label_t> labels = m_dataset.addDataset(newData);
+
+	m_facerec->update(newData.images(), labels);
+	for (int label = oldLabelCount; label < (int)m_dataset.labelCount(); ++label){
+		m_facerec->setLabelInfo(label, m_dataset.stringByLabel(label));
+	}
 }
 
 std::string FaceRecognizer::predict(cv::Mat image) const
