@@ -2,7 +2,7 @@
 
 #include "util/log.h"
 
-#include <conio.h>
+#include <iostream>
 
 enum ScanCodes
 {
@@ -229,6 +229,8 @@ void WebcamUI::processKey(int key)
 		case Mode::DetectingFaces:
 			setMode(Mode::AddingFace);
 			cv::setWindowTitle(m_windowName, std::string("Select face for ") + m_nameToAdd);
+			break;
+		default:
 			break;
 		}
 		break;
