@@ -135,6 +135,15 @@ def delete_key_points(key_points, descriptors, matched_kp, labels, clremoved):
 
     return np.delete(key_points, remove_indexes), np.delete(descriptors, remove_indexes, axis=0)
 
+def get_homography_and_draw_lines(src_pts, dst_pts, query_img):
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 3.0)
+    h, w = C.shape
+    pts = np.float32([[0, 0], [0, h], [w, h], [w, 0]]).reshape(-1, 1, 2)
+    dst = cv2.perspectiveTransform(pts, M)
+    cv2.polylines(query_img, [np.int32(dst)], True, 0, 2)
+    return query_img
+
+
 def cast_list_to_int(_list):
     _list_x = [int(x[0]) for x in _list]
     _list_y = [int(y[1]) for y in _list]
