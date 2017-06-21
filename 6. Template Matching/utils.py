@@ -134,3 +134,8 @@ def delete_key_points(key_points, descriptors, matched_kp, labels, clremoved):
     remove_indexes.sort()
 
     return np.delete(key_points, remove_indexes), np.delete(descriptors, remove_indexes, axis=0)
+
+def cast_list_to_int(_list):
+    _list_x = [int(x[0]) for x in _list]
+    _list_y = [int(y[1]) for y in _list]
+    return [(_list_x[i],_list_y[i]) for i in range(len(_list))]
