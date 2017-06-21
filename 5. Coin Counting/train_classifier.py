@@ -11,7 +11,7 @@ def get_circles(img):
     sf = min(640. / img.shape[1], 480. / img.shape[0])
     gray = cv2.resize(img, (0, 0), None, sf, sf)
     rects = cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40))
-    
+
     for x, y, w, h in rects:
         rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
         final_rects.append(rect)
@@ -223,8 +223,11 @@ def train_preprocessing(original_img):
         # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
         # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
         # cv2.imshow('Morph: {}'.format(i), rectangles[i])
-        thresholds.append(adaptive_thresholding(rectangles[i]))
-        # cv2.imshow('Threshold: {}'.format(i), thresholds[i])
+        adapt_thresh = adaptive_thresholding(rectangles[i])
+        adapt_thresh = adapt_thresh[:, ~np.all(adapt_thresh == 0, axis=0)]  # Remove columns where all elements are zero
+        adapt_thresh = adapt_thresh[~np.all(adapt_thresh == 0, axis=1)]  # Remove rows where all elements are zero
+        thresholds.append(adapt_thresh)
+        # cv2.imshow('Threshold: {}'.format(i), adapt_thresh)
 
     res = []
     # Loop to 1!!!
@@ -268,7 +271,6 @@ def train_samples(path):
             for img_filename in os.listdir(os.path.join(path, folder_name))[0:1]:
                 img = cv2.imread(os.path.join(path, folder_name, img_filename))
                 column, row, channel = img.shape
-                img = cv2.resize(img, (int(row / 9), int(column / 9)))
                 cv2.imshow('Origin', img)
                 x.append(train_preprocessing(img))
                 labels.append(folder_name)
@@ -276,7 +278,7 @@ def train_samples(path):
 
 
 def main():
-    path = 'Coins'
+    path = 'train_img_0.12'
     x, y = train_samples(path)
     clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
     clf.fit(x, y)
