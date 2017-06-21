@@ -13,7 +13,6 @@ class Dataset
 public:
 	void addImages(label_t label, const std::vector<cv::Mat>& images);
 	void addImages(const std::string& str, const std::vector<cv::Mat>& images);
-	std::vector<label_t> addDataset(const Dataset& newData);
 	void setLabelString(label_t label, const std::string& str);
 	
 	int labelCount() const { return (int)m_labelToString.size(); }

@@ -24,5 +24,4 @@ public:
 private:
 	bool m_ready = false;
 	cv::Ptr<cv::face::FaceRecognizer> m_facerec;
-	Dataset m_dataset;
 };
