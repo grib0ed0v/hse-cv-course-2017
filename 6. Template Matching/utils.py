@@ -54,7 +54,7 @@ def get_good_matches(matches):
     for m, n in matches:
         if m.distance < 0.9 * n.distance:
             _good_matches.append(m)
-    return  _good_matches
+    return _good_matches
 
 
 def get_mached_kpoints(src_kpoints, dst_kpoints, matches):
@@ -135,7 +135,8 @@ def delete_key_points(key_points, descriptors, matched_kp, labels, clremoved):
 
     return np.delete(key_points, remove_indexes), np.delete(descriptors, remove_indexes, axis=0)
 
-def get_homography_and_draw_lines(src_pts, dst_pts_list, etalon_img,query_img):
+
+def get_homography_and_draw_lines(src_pts, dst_pts_list, etalon_img, query_img):
     for i in dst_pts_list:
         M, mask = cv2.findHomography(src_pts, i, cv2.RANSAC, 3.0)
         h, w = etalon_img.shape
@@ -148,4 +149,19 @@ def get_homography_and_draw_lines(src_pts, dst_pts_list, etalon_img,query_img):
 def cast_list_to_int(_list):
     _list_x = [int(x[0]) for x in _list]
     _list_y = [int(y[1]) for y in _list]
-    return [(_list_x[i],_list_y[i]) for i in range(len(_list))]
+    return [(_list_x[i], _list_y[i]) for i in range(len(_list))]
+
+
+def template_shape(key_points):
+    """
+    Find and return left upper and right lower corners(point like '(x,y)') of template
+    
+    :param key_points(np.array/list): key points of template 
+    """
+    kpoints_x = [kp.pt[0] for kp in key_points]
+    kpoints_y = [kp.pt[1] for kp in key_points]
+    lu_x = min(kpoints_x)
+    lu_y = max(kpoints_y)
+    rl_x = max(kpoints_x)
+    rl_y = min(kpoints_y)
+    return (lu_x, lu_y), (rl_x, rl_y)
