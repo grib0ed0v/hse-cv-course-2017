@@ -21,7 +21,6 @@ if __name__ == '__main__':
     query2 = copy.copy(query)
     query3 = copy.copy(query)
     kpc, desc, kpq, desq, src_pts, dst_pts, matches = keypoints_match(C, gquery)
-    kp_template, descr_template, kp_source, descr_source, src_pts, dst_pts, matches = keypoints_match(coke, query)
     img1 = cv2.drawKeypoints(C, kpc, C)
     img2 = cv2.drawKeypoints(query, kpq, query)
 
@@ -40,22 +39,23 @@ if __name__ == '__main__':
     #cv2.imshow("query", img2)
     #cv2.waitKey()
 
-    list_keypoints = get_points(kp_source)
+    list_keypoints = get_points(kpq)
     list_keypoints_int = cast_list_to_int(list_keypoints)
     iiiimg1 = deepcopy(query2)
     labels_cluster_keypoints, number_cluster_keypoints = acl.meanshift_clustering(list_keypoints, quantile=0.05, n_samples=1000)
 
 
-    matches = matching(descr_template, descr_source)
-    mkpc, mkpq = get_mached_kpoints(kp_template, kp_source, matches)
+    matches = matching(desc, desq)
+    mkpc, mkpq = get_mached_kpoints(kpc, kpq, matches)
     list_match = get_points(mkpq)
     list_match_int = cast_list_to_int(list_match)
-    labelsq, nclq = acl.meanshift_clustering(list_match, quantile=0.15, n_samples=1000)
+    labelsq, nclq = acl.meanshift_clustering(list_match, quantile=0.15, n_samples=500)
     iiiimg = deepcopy(query2)
 
     iiiim3 = deepcopy(query2)
     epsilon = 1
-    clusters_of_matching = {}
+    clusters_of_matching = {} # keys - cluster label in matching clusters_of_matching,
+							  # values - cluster labels of global clasters
     for i in range(nclq):
         clusters_of_matching[i] = []
         for j in [k for k in range(len(labelsq)) if labelsq[k] == i]:
@@ -77,16 +77,17 @@ if __name__ == '__main__':
         clusters_of_matching[i] = set(clusters_of_matching[i])
     # cv2.imshow('ololoq', iiiim3)
     # cv2.waitKey()
-    # acl.draw_clusters(iiiimg1, list_keypoints_int, labels_cluster_keypoints,"olololololo")
-    # acl.draw_clusters(iiiimg, list_match, labelsq)
+    acl.draw_clusters(iiiimg1, list_keypoints_int, labels_cluster_keypoints,"olololololo")
+    acl.draw_clusters(iiiimg, list_match, labelsq)
+    print clusters_of_matching
 
     for i in clusters_of_matching:
-        tmp = descr_source[np.array([k for j in clusters_of_matching[i] for k in range(len(labels_cluster_keypoints)) if j == labels_cluster_keypoints[k]])]
+        tmp = desq[np.array([k for j in clusters_of_matching[i] for k in range(len(labels_cluster_keypoints)) if j == labels_cluster_keypoints[k]])]
         voop = []
         for z in [k for j in clusters_of_matching[i] for k in range(len(labels_cluster_keypoints)) if j == labels_cluster_keypoints[k]]:
-            voop.append(kp_source[z])
-        matches = matching(descr_template, tmp)
-        mkpc, mkpq = get_mached_kpoints(kp_template, voop, matches)
+            voop.append(kpq[z])
+        matches = matching(desc, tmp)
+        mkpc, mkpq = get_mached_kpoints(kpc, voop, matches)
         list_match = get_points(mkpq)
         iiiimg4 = deepcopy(query2)
         for n in list_match:
