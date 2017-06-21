@@ -27,7 +27,7 @@ def find_circles(img):
     img_2 = img.copy()
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area < 5000:  # or area > 50000:
+        if area < 5000 or area > 50000:
             continue
         if len(cnt) < 5:
             continue
@@ -35,9 +35,9 @@ def find_circles(img):
         circles.append(ellipse)
         cv2.ellipse(img_2, ellipse, (0, 255, 0), 2)
 
-    # cv2.imshow("Adaptive Thresholding", thresh)
-    # cv2.imshow("Morphological Closing", closing)
-    #cv2.imshow('Contours', img_2)
+    #cv2.imshow("Adaptive Thresholding", thresh)
+    #cv2.imshow("Morphological Closing", closing)
+    cv2.imshow('Contours', img_2)
     return circles
 
 
@@ -209,7 +209,7 @@ def train_preprocessing(original_img):
         rect_size = rectangles[i].shape
         a = rect_size[0]
         b = rect_size[1]
-        rectangles[i] = rectangles[i][int(0.1 * a): int(0.7 * a), int(0.15 * b): int(0.75 * b)]
+        rectangles[i] = rectangles[i][int(0.1 * a): int(0.75 * a), int(0.1 * b): int(0.75 * b)]
         # cv2.imshow('Cut: {}'.format(i), rectangles[i])
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         # cv2.imshow('Canny: {}'.format(i), rectangles[i])
@@ -249,30 +249,33 @@ def train_preprocessing(original_img):
         # Result
         res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
                         cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
+        cv2.imshow('RES', res[0])
     return get_features(res[0])
 
 
 def train_samples(path):
     labels = []
     x = []
-    for folder_name in os.listdir(path):
+    for folder_name in os.listdir(path)[0:1]:
         # Process only folders
         if os.path.isdir(os.path.join(path, folder_name)):
-            for img_filename in os.listdir(os.path.join(path, folder_name)):
+            for img_filename in os.listdir(os.path.join(path, folder_name))[0:1]:
                 img = cv2.imread(os.path.join(path, folder_name, img_filename))
-                row, column, channel = img.shape
-                img = cv2.resize(img, (row, column / 9))
+                column, row, channel = img.shape
+                img = cv2.resize(img, (int(row / 9), int(column / 9)))
+                cv2.imshow('Origin', img)
                 x.append(train_preprocessing(img))
                 labels.append(folder_name)
     return x, labels
 
 
 def main():
-    path = 'D:\Coins'  # TODO Set up actual path to train images folder
+    path = 'Coins'
     x, y = train_samples(path)
-    clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
-    clf.fit(x, y)
-    joblib.dump(clf, 'classificator.pkl')
+    #clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
+    #clf.fit(x, y)
+    #joblib.dump(clf, 'classificator.pkl')
+    cv2.waitKey()
 
 if __name__ == '__main__':
     main()
