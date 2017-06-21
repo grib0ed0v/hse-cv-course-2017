@@ -1,7 +1,23 @@
 import numpy as np
 import cv2
-import os
 from sklearn.externals import joblib
+
+
+def get_circles(img):
+    final_rects = []
+    cascade = cv2.CascadeClassifier("cascade.xml")
+    sf = min(640. / img.shape[1], 480. / img.shape[0])
+    gray = cv2.resize(img, (0, 0), None, sf, sf)
+    rects = cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40))
+
+    for x, y, w, h in rects:
+        rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
+        cv2.imshow("edges+face {}".format(x), rect)
+        final_rects.append(rect)
+        cv2.rectangle(img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
+                      (0, 0, 255), 2)
+    cv2.imshow("edges+face", img)
+    return final_rects
 
 
 def find_circles(img):
@@ -193,23 +209,15 @@ def get_features(img):
 
 def test_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    circles = find_circles(grey_img)
-    # form rectangles from ellipsoids
-    # DAShA?!, OLJa: V RECTANGLES NUZhNO ZAPISAT'' VYDELENNYE IZOBRAZhENIJa
-    rectangles = rect_img(circles, grey_img)
+    rectangles = get_circles(grey_img)
     thresholds = []
     for i in range(len(rectangles)):
-        rect_size = rectangles[i].shape
-        a = rect_size[0]
-        b = rect_size[1]
-        rectangles[i] = rectangles[i][int(0.1 * a): int(0.7 * a), int(0.15 * b): int(0.75 * b)]
-        # cv2.imshow('Cut: {}'.format(i), rectangles[i])
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         # cv2.imshow('Canny: {}'.format(i), rectangles[i])
         ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
-        #cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
+        # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
         # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
-        #cv2.imshow('Morph: {}'.format(i), rectangles[i])
+        # cv2.imshow('Morph: {}'.format(i), rectangles[i])
         thresholds.append(adaptive_thresholding(rectangles[i]))
         cv2.imshow('Threshold: {}'.format(i), thresholds[i])
 
@@ -250,8 +258,6 @@ def test_preprocessing(original_img):
 
 def main():
     img = cv2.imread("Pic4.jpg")
-    row, column, channel = img.shape
-    img = cv2.resize(img, (row, column / 9))
     clf = joblib.load('classificator.pkl')
     x_test = test_preprocessing(img)
     y_test = []
@@ -261,7 +267,6 @@ def main():
     y_sum=0
     for k in range(y_test.__len__()):
         y_sum=y_sum+int(y_test[k][0])
-    # y_sum = np.sum(y_test)  # Renamed from sum to avoid overriding python sum func
     print(y_sum)
 
 if __name__ == '__main__':

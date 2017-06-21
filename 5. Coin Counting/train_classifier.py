@@ -5,6 +5,19 @@ from sklearn import svm
 from sklearn.externals import joblib
 
 
+def get_circles(img):
+    final_rects = []
+    cascade = cv2.CascadeClassifier("cascade.xml")
+    sf = min(640. / img.shape[1], 480. / img.shape[0])
+    gray = cv2.resize(img, (0, 0), None, sf, sf)
+    rects = cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40))
+    
+    for x, y, w, h in rects:
+        rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
+        final_rects.append(rect)
+    return final_rects
+
+
 def find_circles(img):
     # Use gaussian filter to delete noise
     grey_blur = cv2.GaussianBlur(img, (15, 15), 0)
@@ -35,8 +48,8 @@ def find_circles(img):
         circles.append(ellipse)
         cv2.ellipse(img_2, ellipse, (0, 255, 0), 2)
 
-    #cv2.imshow("Adaptive Thresholding", thresh)
-    #cv2.imshow("Morphological Closing", closing)
+    # cv2.imshow("Adaptive Thresholding", thresh)
+    # cv2.imshow("Morphological Closing", closing)
     cv2.imshow('Contours', img_2)
     return circles
 
@@ -199,17 +212,10 @@ def get_features(img):
 # TODO Merge with test_preprocessing function
 def train_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    circles = find_circles(grey_img)
-    # form rectangles from ellipsoids
-    # DASHA?!, OLYA: V RECTANGLES NUZHNO ZAPISAT VYDELLENNYE IMAGES
-    rectangles = rect_img(circles, grey_img)
+    rectangles = get_circles(grey_img)
     thresholds = []
-    # Loop to 1!!!
     for i in range(1):
-        rect_size = rectangles[i].shape
-        a = rect_size[0]
-        b = rect_size[1]
-        rectangles[i] = rectangles[i][int(0.1 * a): int(0.75 * a), int(0.1 * b): int(0.75 * b)]
+        rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         # cv2.imshow('Cut: {}'.format(i), rectangles[i])
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         # cv2.imshow('Canny: {}'.format(i), rectangles[i])
@@ -272,10 +278,11 @@ def train_samples(path):
 def main():
     path = 'Coins'
     x, y = train_samples(path)
-    #clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
-    #clf.fit(x, y)
-    #joblib.dump(clf, 'classificator.pkl')
+    clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
+    clf.fit(x, y)
+    joblib.dump(clf, 'classificator.pkl')
     cv2.waitKey()
+
 
 if __name__ == '__main__':
     main()
