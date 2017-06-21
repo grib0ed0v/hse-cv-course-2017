@@ -64,7 +64,10 @@ void FaceRecognizer::update(Dataset& newData)
 		if (newLabels[i] >= modelLabelCount) {
 			m_facerec->setLabelInfo(newLabels[i], info[i]);
 		}
-	}	
+	}
+
+	m_newImages.insert(m_newImages.end(), newData.images().begin(), newData.images().end());
+	m_newLabels.insert(m_newLabels.end(), updatedLabels.begin(), updatedLabels.end());	
 }
 
 std::string FaceRecognizer::predict(cv::Mat image) const
