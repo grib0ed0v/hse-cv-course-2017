@@ -1,10 +1,18 @@
 #include "face_recognizer.h"
 
+#include "util/fsutil.h"
 #include "util/log.h"
 
-FaceRecognizer::FaceRecognizer()
+FaceRecognizer::FaceRecognizer(const std::string& configPath)
 {
-	m_facerec = cv::face::createLBPHFaceRecognizer();
+	if (!fs::pathExists(configPath)) {
+		m_config.write(configPath);
+	} else {
+		if (!m_config.read(configPath)) {
+			logWarning() << "FaceRecognizer config exists, but can't be read from" << configPath;
+		}
+	}
+	m_facerec = cv::face::createLBPHFaceRecognizer(m_config.radius, m_config.neighbors, m_config.grid_x, m_config.grid_y, m_config.threshold);
 }
 
 void FaceRecognizer::load(const std::string& filename)
@@ -78,6 +86,9 @@ std::string FaceRecognizer::predict(cv::Mat image) const
 	double confidence = 0.0;
 	label_t label = -1;
 	m_facerec->predict(image, label, confidence);
+	if (label == -1) {
+		return "Unknown";
+	}
 	std::string s = m_facerec->getLabelInfo(label);
 	s += " ";
 	s += std::to_string(confidence);

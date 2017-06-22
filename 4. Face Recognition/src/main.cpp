@@ -12,7 +12,7 @@ struct ProgramParams
 {
 	std::string configFolder;
 	std::string datasetFolder;
-	std::string cascadeFolder = ".";
+	std::string cascadeFolder;
 	bool retrain = false;
 	bool doPreprocessDataset = false;
 	bool doPreprocessImage = false;
@@ -25,6 +25,7 @@ enum ProgramArgIds
 {
 	ConfigFolder,
 	DatasetFolder,
+	CascadeFolder,
 	Retrain,
 	PreprocessDataset,
 	PreprocessImage,
@@ -46,6 +47,13 @@ std::vector<ArgParser::Arg> g_programArgs = {
 		"d",
 		"dataset",
 		"Folder with images for training",
+		true
+	},
+	{
+		ProgramArgIds::CascadeFolder,
+		"ca",
+		"cascade",
+		"Folder with cascade classifiers",
 		true
 	},
 	{
@@ -115,6 +123,10 @@ protected:
 			m_params.datasetFolder = param;
 			break;
 
+		case CascadeFolder:
+			m_params.cascadeFolder = param;
+			break;
+
 		case Retrain:
 			m_params.retrain = true;
 			break;
@@ -160,6 +172,7 @@ ProgramParams readProgramFolders(const std::string& path)
 
 	programFolders.configFolder = (std::string)fileStorage["configFolder"];
 	programFolders.datasetFolder = (std::string)fileStorage["datasetFolder"];
+	programFolders.cascadeFolder = (std::string)fileStorage["cascadeFolder"];
 	return programFolders;
 }
 
@@ -168,6 +181,7 @@ void writeProgramFolders(const ProgramParams& config, const std::string& path)
 	cv::FileStorage fileStorage(path, cv::FileStorage::WRITE);
 	fileStorage << "configFolder" << config.configFolder;
 	fileStorage << "datasetFolder" << config.datasetFolder;
+	fileStorage << "cascadeFolder" << config.cascadeFolder;
 }
 
 ProgramParams prepareParams(int argc, char* argv[])
@@ -180,12 +194,15 @@ ProgramParams prepareParams(int argc, char* argv[])
 	}
 	config = g_argParser.params();
 
-	ProgramParams storedFolders = readProgramFolders("folders.xml");
+	ProgramParams storedFolders = readProgramFolders("folders.json");
 	if (config.configFolder.empty()) {
 		config.configFolder = storedFolders.configFolder;
 	}
 	if (config.datasetFolder.empty()) {
 		config.datasetFolder = storedFolders.datasetFolder;
+	}
+	if (config.cascadeFolder.empty()) {
+		config.cascadeFolder = storedFolders.cascadeFolder;
 	}
 
 	if (config.configFolder.empty()) {
@@ -196,6 +213,17 @@ ProgramParams prepareParams(int argc, char* argv[])
 
 	if (!fs::isDir(config.configFolder)) {
 		logError() << "Invalid config folder:" << config.configFolder;
+		exit(1);
+	}
+
+	if (config.cascadeFolder.empty()) {
+		logInfo() << g_argParser.generateUsageMessage(argv[0]);
+		logError() << "No cascade folder, aborting";
+		exit(1);
+	}
+
+	if (!fs::isDir(config.cascadeFolder)) {
+		logError() << "Invalid cascade folder:" << config.cascadeFolder;
 		exit(1);
 	}
 	return config;
@@ -327,6 +355,7 @@ const struct ConfigNames
 	std::string detector = "detector_config.json";
 	std::string recognizer = "facerec_config";
 	std::string folders = "folders.json";
+	std::string recognizerparams = "facerec_params_config.json";
 } g_configNames;
 
 int main(int argc, char* argv[])
@@ -335,6 +364,7 @@ int main(int argc, char* argv[])
 
 	logInfo() << "Config folder:" << config.configFolder;
 	logInfo() << "Dataset folder:" << (config.datasetFolder.empty() ? "(empty)" : config.datasetFolder);
+	logInfo() << "Cascade folder:" << config.cascadeFolder;
 
 	if (config.doPreprocessDataset) {
 		ensureOutput(config.outputPath);
@@ -353,7 +383,7 @@ int main(int argc, char* argv[])
 	}
 
 	std::string recognizerConfig = fs::concatPath(config.configFolder, g_configNames.recognizer);
-	FaceRecognizer facerec;
+	FaceRecognizer facerec(fs::concatPath(config.configFolder, g_configNames.recognizerparams));
 	if (!config.retrain && fs::pathExists(recognizerConfig)) {
 		logInfo() << "Loading pre-trained model from" << recognizerConfig;
 		facerec.load(recognizerConfig);
