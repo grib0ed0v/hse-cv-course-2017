@@ -64,7 +64,7 @@ std::vector<std::string> getFilesInDir(const std::string& path)
 bool mkdir(const std::string path)
 {
 #ifdef __linux__
-	return !mkdir(path.c_str(), 0777);
+	return !::mkdir(path.c_str(), 0777);
 #elif _WIN32
 	return !_mkdir(path.c_str());
 #else
