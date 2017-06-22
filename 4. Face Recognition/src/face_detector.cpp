@@ -148,7 +148,13 @@ cv::Mat FaceDetector::processFace(cv::Mat img)
 std::vector<FaceDetector::FaceRegion> FaceDetector::detect(cv::Mat img)
 {
 	cv::Mat gray;
-	cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+
+	if (img.channels() == 3) {
+		cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+	} else if (img.channels() == 1) {
+		gray = img.clone();
+	}
+
 	std::vector<cv::Rect> faceRects;
 	m_classifier.detectMultiScale(gray, faceRects, 1.2, 5, 0, cv::Size(30, 30));
 	std::vector<FaceRegion> faces;

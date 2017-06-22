@@ -8,8 +8,6 @@ set(SOURCES
 	face_detector.h
 	face_recognizer.cpp
 	face_recognizer.h
-	image_providers.cpp
-	image_providers.h
 	dataset.h
 	dataset.cpp
 	util/log.h

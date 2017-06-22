@@ -89,6 +89,9 @@ size_t ArgParser::parseArgs(int argc, char* argv[])
 
 		--argc;
 		++argv;
+		if (arg.hasParam) {
+			++paramIdx;
+		}
 		++paramIdx;
 	}
 

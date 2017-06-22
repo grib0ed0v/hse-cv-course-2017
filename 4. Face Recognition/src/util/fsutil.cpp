@@ -7,6 +7,7 @@
 #include <dirent.h>
 #elif _WIN32
 #include <windows.h>
+#include <direct.h>
 #endif
 namespace fs {
 
@@ -58,6 +59,17 @@ std::vector<std::string> getFilesInDir(const std::string& path)
 	FindClose(findHandle);
 #endif
 	return result;
+}
+
+bool mkdir(const std::string path)
+{
+#ifdef __linux__
+	return !mkdir(path.c_str(), 0777);
+#elif _WIN32
+	return !_mkdir(path.c_str());
+#else
+	return false;
+#endif
 }
 
 std::string concatPathImpl(std::string path, std::string part)

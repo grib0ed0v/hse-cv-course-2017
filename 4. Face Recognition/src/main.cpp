@@ -12,14 +12,25 @@ struct ProgramParams
 {
 	std::string configFolder;
 	std::string datasetFolder;
+	std::string cascadeFolder = ".";
 	bool retrain = false;
+	bool doPreprocessDataset = false;
+	bool doPreprocessImage = false;
+	bool doRecognizeImage = false;
+	std::string inputPath;
+	std::string outputPath;
 };
 
 enum ProgramArgIds
 {
 	ConfigFolder,
-	Dataset,
+	DatasetFolder,
 	Retrain,
+	PreprocessDataset,
+	PreprocessImage,
+	RecognizeImage,
+	InputPath,
+	OutputPath,
 };
 
 std::vector<ArgParser::Arg> g_programArgs = {
@@ -31,7 +42,7 @@ std::vector<ArgParser::Arg> g_programArgs = {
 		true
 	},
 	{
-		ProgramArgIds::Dataset,
+		ProgramArgIds::DatasetFolder,
 		"d",
 		"dataset",
 		"Folder with images for training",
@@ -39,10 +50,45 @@ std::vector<ArgParser::Arg> g_programArgs = {
 	},
 	{
 		ProgramArgIds::Retrain,
-		"r",
-		"retrain",
+		"t",
+		"train",
 		"Disregard stored model and train recognizer again",
 		false
+	},
+	{
+		ProgramArgIds::PreprocessDataset,
+		"pd",
+		"preprocess-dataset",
+		"Run face detection and preprocessing on dataset and write to output",
+		false
+	},
+	{
+		ProgramArgIds::PreprocessImage,
+		"pi",
+		"preprocess-image",
+		"Run face detection and preprocessing on single image",
+		false
+	},
+	{
+		ProgramArgIds::RecognizeImage,
+		"r",
+		"recognize",
+		"Preprocess and recognize faces on single image",
+		false
+	},
+	{
+		ProgramArgIds::InputPath,
+		"i",
+		"intput",
+		"Specify input directiry or file for --preprocess, --preprocess-image and --recognize",
+		true
+	},
+	{
+		ProgramArgIds::OutputPath,
+		"o",
+		"output",
+		"Specify output directiry for --preprocess-image and --recognize",
+		true
 	},
 };
 
@@ -65,12 +111,32 @@ protected:
 			m_params.configFolder = param;
 			break;
 
-		case Dataset:
+		case DatasetFolder:
 			m_params.datasetFolder = param;
 			break;
 
 		case Retrain:
 			m_params.retrain = true;
+			break;
+
+		case PreprocessDataset:
+			m_params.doPreprocessDataset = true;
+			break;
+
+		case PreprocessImage:
+			m_params.doPreprocessImage = true;
+			break;
+
+		case RecognizeImage:
+			m_params.doRecognizeImage = true;
+			break;
+
+		case InputPath:
+			m_params.inputPath = param;
+			break;
+
+		case OutputPath:
+			m_params.outputPath = param;
 			break;
 
 		default:
@@ -135,12 +201,148 @@ ProgramParams prepareParams(int argc, char* argv[])
 	return config;
 }
 
+void preprocessDataset(ProgramParams config)
+{
+
+	if (!fs::pathExists(config.outputPath) && !fs::mkdir(config.outputPath)) {
+		logError() << "Could not create folder:" << config.outputPath;
+		return;
+	}
+
+	FaceDetector detector(config.cascadeFolder);
+
+	Dataset data;
+	if (config.datasetFolder.empty()) {
+		logError() << "Dataset folder not set!";
+		return;
+	}
+
+	std::vector<std::string> datasetContent = fs::getFilesInDir(config.datasetFolder);
+	auto removeIt = std::remove_if(datasetContent.begin(), datasetContent.end(),
+		[&config](const std::string& path)
+	{
+		return !fs::isDir(fs::concatPath(config.datasetFolder, path));
+	});
+	datasetContent.erase(removeIt, datasetContent.end());
+
+	if (datasetContent.empty()) {
+		logError() << "Empty datset:" << config.datasetFolder;
+	}
+
+	for (const std::string& folderName : datasetContent) {
+		std::string folderPath = fs::concatPath(config.datasetFolder, folderName);
+		std::vector<std::string> folderContent = fs::getFilesInDir(folderPath);
+		if (folderContent.empty()) {
+			logWarning() << "Empty folder:" << folderPath;
+			continue;
+		}
+
+		for (const std::string imgName : folderContent) {
+			std::string imgPath = fs::concatPath(folderPath, imgName);
+			cv::Mat image = cv::imread(imgPath, cv::IMREAD_GRAYSCALE);
+			if (image.data == nullptr) {
+				logError() << "Could not read" << imgPath;
+				continue;
+			}
+
+			std::string imgFolder = fs::concatPath(config.outputPath, folderName);
+			if (!fs::pathExists(imgFolder) && !fs::mkdir(imgFolder)) {
+				logError() << "Could not create folder:" << imgFolder;
+				return;
+			}
+
+			std::vector<FaceDetector::FaceRegion> faces = detector.detect(image);
+			if (faces.size() > 1) {
+				logWarning() << folderName << " : more than one face found on image" << imgName;
+			}
+			else if (faces.empty()) {
+				logWarning() << folderName << " : no faces found on image" << imgName;
+				continue;
+			}
+
+			size_t createdImages = 0;
+			for (const auto& face : faces) {
+				std::string outImgName = imgName + "_" + std::to_string(createdImages) + ".jpg";
+				cv::imwrite(fs::concatPath(imgFolder, outImgName), face.image);
+				++createdImages;
+			}
+		}
+	}
+}
+
+void processImage(ProgramParams config, FaceRecognizer* pRecognizer = nullptr)
+{
+	cv::Mat image = cv::imread(config.inputPath, cv::IMREAD_GRAYSCALE);
+	if (image.data == nullptr) {
+		logError() << "Could not read" << config.inputPath;
+		return;
+	}
+
+	FaceDetector detector(config.cascadeFolder);
+	size_t createdImages = 0;
+
+	std::vector<FaceDetector::FaceRegion> faces = detector.detect(image);
+	logInfo() << "Found" << faces.size() << (faces.size() == 1 ? "face" : "faces");
+
+	for (const auto& face : faces) {
+		std::string outImgName = std::to_string(createdImages);
+		if (pRecognizer) {
+			std::string pred = pRecognizer->predict(face.image);
+			if (pred.empty()) pred = "unknown";
+			logInfo() << pred;
+			
+			if (config.outputPath.empty()) {
+				continue;
+			}
+
+			outImgName += '_';
+			outImgName += pred;
+		}
+		outImgName += ".png";
+		std::string outImgPath = fs::concatPath(config.outputPath, outImgName);
+		if (!cv::imwrite(outImgPath, face.image)) {
+			logError() << "Could not write" << outImgPath;
+			return;
+		}
+		++createdImages;
+	}
+}
+
+bool ensureOutput(std::string& output)
+{
+	if (output.empty()) {
+		logInfo() << "Output path not specified, won't write images";
+		return true;
+	}
+	if (!fs::pathExists(output) && !fs::mkdir(output)) {
+		logError() << "Could not create folder:" << output;
+		return false;
+	}
+	return true;
+}
+
 int main(int argc, char* argv[])
 {
 	ProgramParams config = prepareParams(argc, argv);
 
 	logInfo() << "Config folder:" << config.configFolder;
 	logInfo() << "Dataset folder:" << (config.datasetFolder.empty() ? "(empty)" : config.datasetFolder);
+
+	if (config.doPreprocessDataset) {
+		ensureOutput(config.outputPath);
+		logInfo() << "Preprocessing dataset, output:" << config.outputPath;
+		preprocessDataset(config);
+		return 0;
+	}
+
+	if (config.doPreprocessImage) {
+		ensureOutput(config.outputPath);
+		logInfo() << "Processing" << config.inputPath << " output:" << (config.outputPath.empty() ? "(empty)" : config.outputPath);
+		processImage(config);
+		if (!config.doRecognizeImage) {
+			return 0;
+		}
+	}
 
 	std::string recognizerConfig = fs::concatPath(config.configFolder, "facerec_config");
 	FaceRecognizer facerec;
@@ -173,8 +375,14 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	std::string detectorConfig = ".";
-	FaceDetector detector(detectorConfig);
+	if (config.doRecognizeImage) {
+		ensureOutput(config.outputPath);
+		logInfo() << "Recognizing" << config.inputPath << " output:" << (config.outputPath.empty() ? "(empty)" : config.outputPath);
+		processImage(config, &facerec);
+		return 0;
+	}
+
+	FaceDetector detector(config.cascadeFolder);
 
 	cv::VideoCapture cap(0);
 	if (!cap.isOpened()) {

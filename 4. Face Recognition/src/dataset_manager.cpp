@@ -60,6 +60,8 @@ Dataset DatasetManager::readDataset()
 	}
 
 	for (const std::string& folderName : datasetContent) {
+		images.clear();
+
 		std::string folderPath = fs::concatPath(m_datasetFolder, folderName);
 		std::vector<std::string> folderContent = fs::getFilesInDir(folderPath);
 		if (folderContent.empty()) {
