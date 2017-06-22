@@ -45,7 +45,7 @@ Dataset DatasetManager::readDataset()
 		return data;
 	}
 
-	label_t curLabel = 1;
+	label_t curLabel = 0;
 	std::vector<cv::Mat> images;
 	std::vector<std::string> datasetContent = fs::getFilesInDir(m_datasetFolder);
 	auto removeIt = std::remove_if(datasetContent.begin(), datasetContent.end(),

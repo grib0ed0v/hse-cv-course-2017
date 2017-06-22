@@ -36,24 +36,28 @@ void FaceRecognizer::update(Dataset& newData)
 {
 	std::vector<label_t> newLabels(newData.labelCount(), -1);
 	std::vector<std::string> info(newData.labelCount());
-	int modelLabelCount = m_facerec->getLabelsByString("").size();
-	int newModelLabelCount = modelLabelCount;
- 
+	int modelLabelCount = -1;
+	
 	for (int label = 0; label < newData.labelCount(); ++label) {
 		info[label] = newData.stringByLabel(label);
-		std::vector<int> modelLabels = m_facerec->getLabelsByString(info[label]);
-
-		for (auto& x: modelLabels) {
-			if (m_facerec->getLabelInfo(x) == info[label]) {
-				newLabels[label] = x;
-				break;
+		label_t newLabel = 0;
+		while (newLabels[label] == -1) {
+			std::string str = m_facerec->getLabelInfo(newLabel);
+			if (str == info[label]) {
+				logInfo() << "Old label";
+				newLabels[label] = newLabel;
 			}
-		}
-		if (newLabels[label] == -1) {
-			newLabels[label] = newModelLabelCount++;
+			else if (str == "") {
+				logInfo() << "New label";
+				newLabels[label] = newLabel;
+				if (modelLabelCount == -1) {
+					modelLabelCount = newLabel;
+				}
+			}
+			newLabel++;
 		}
 	}
-	
+
 	std::vector<label_t> updatedLabels(newData.labels().size());
 	for (size_t i = 0; i < updatedLabels.size(); ++i) {
 		updatedLabels[i] = newLabels[ newData.labels()[i] ];
