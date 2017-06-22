@@ -66,8 +66,9 @@ void FaceRecognizer::update(Dataset& newData)
 		}
 	}
 
-	m_newImages.insert(m_newImages.end(), newData.images().begin(), newData.images().end());
-	m_newLabels.insert(m_newLabels.end(), updatedLabels.begin(), updatedLabels.end());	
+	for (size_t i = 0; i < newData.images().size(); ++i) {
+		m_newData.addImage(newData.stringByLabel(newData.labels()[i]), newData.images()[i]); 
+	}
 }
 
 std::string FaceRecognizer::predict(cv::Mat image) const

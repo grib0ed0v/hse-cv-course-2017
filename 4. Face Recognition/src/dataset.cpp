@@ -11,12 +11,22 @@ void Dataset::addImages(label_t label, const std::vector<cv::Mat>& images)
 
 void Dataset::addImages(const std::string& str, const std::vector<cv::Mat>& images)
 {
-	label_t strLabel = labelByString(str);
-	if (strLabel < 0) {
-		strLabel = labelCount();
-		setLabelString(strLabel, str);
-	}
+	label_t strLabel = assignLabel(str);
 	addImages(strLabel, images);
+}
+
+void Dataset::addImage(label_t label, const cv::Mat& image)
+{
+	if (label < 0) return;
+	ensureLabel(label);
+	m_images.push_back(image);
+	m_labels.push_back(label);
+}
+
+void Dataset::addImage(const std::string& str, const cv::Mat& image)
+{
+	label_t strLabel = assignLabel(str);
+	addImage(strLabel, image);
 }
 
 void Dataset::setLabelString(label_t label, const std::string& str)
@@ -45,4 +55,14 @@ void Dataset::ensureLabel(label_t label)
 {
 	if (label >= (label_t)m_labelToString.size())
 		m_labelToString.resize(label + 1);
+}
+
+label_t Dataset::assignLabel(const std::string& str)
+{
+	label_t label = labelByString(str);
+	if (label < 0) {
+		label = labelCount();
+		setLabelString(label, str);
+	}
+	return label;
 }
