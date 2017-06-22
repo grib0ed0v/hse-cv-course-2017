@@ -96,9 +96,9 @@ def remove_cluster(kpoints, descriptors, labels, clremoved):
 
     removed = list()
     for i in range(len(labels)):
-        if labels[i] == clremoved:
+        if labels[i] in clremoved:
             removed.append(i)
-    return np.delete(kpoints, removed), np.delete(descriptors, removed), np.delete(labels, removed)
+    return np.delete(kpoints, removed), np.delete(descriptors, removed, axis=0), np.delete(labels, removed)
 
 
 def clsplite(kpoints, labels, nclusters):
@@ -152,16 +152,17 @@ def cast_list_to_int(_list):
     return [(_list_x[i], _list_y[i]) for i in range(len(_list))]
 
 
-def template_shape(key_points):
+def generate_template_shape(key_points):
     """
-    Find and return left upper and right lower corners(point like '(x,y)') of template
+    Find and return 'real' shape of template, found via key points
     
     :param key_points(np.array/list): key points of template 
     """
     kpoints_x = [kp.pt[0] for kp in key_points]
     kpoints_y = [kp.pt[1] for kp in key_points]
-    lu_x = min(kpoints_x)
-    lu_y = max(kpoints_y)
-    rl_x = max(kpoints_x)
-    rl_y = min(kpoints_y)
+    lu_x = int(min(kpoints_x))
+    lu_y = int(max(kpoints_y))
+    rl_x = int(max(kpoints_x))
+    rl_y = int(min(kpoints_y))
+
     return (lu_x, lu_y), (rl_x, rl_y)
