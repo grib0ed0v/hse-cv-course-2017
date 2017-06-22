@@ -34,7 +34,7 @@ class FlowExecutor:
         if faces is not None and len(faces) > 0:
             for (x, y, w, h) in faces:
                 face = self.__crop(image_copy, (x, y), (x + w, y + h))
-                if (logging.getLogger().getEffectiveLevel() == logging.DEBUG):
+                if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
                     cv2.imshow('Face', face)
                 height, width = face.shape[:2]
                 if height > 0 and width > 0:
