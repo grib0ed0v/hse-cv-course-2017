@@ -29,11 +29,20 @@ If both parameters(-i, -v) are specified or there is an issue with device or fil
 ### High level architecture:
 * preprocessor  
     implements image preprocessing pipeline, which contains following building blocks:
-    - tonal correction;
-    - contrast correction; 
-    - colour correction;
-    - denoising;
-    - face detection via Haar cascades.  
+    - <b>tonal correction</b> - process that changes the tonality of the image. If the gamma is greater than 1, then the color tone
+    of the image becomes lighter. If the gamma less than 1, then the color tone becomes darker;
+    - <b>contrast correction</b> - process that improves the contrast on image. This process apply CLAHE (Contrast Limited Adaptive Histogram Equalization) algorithm.
+    The algorithm works only with grayscale images. Therefore the image is first converted to grayscale image, then apply CLAHE algorithm and then image
+    is converted back to bgr (http://docs.opencv.org/trunk/d5/daf/tutorial_py_histogram_equalization.html);
+    - <b>colour correction</b> - process that corrects the balance of colors in the image. These process apply gray-world white balance algorithm.
+    This algorithm scales the values of pixels based on a gray-world assumption which states that the average of all channels should result in a gray image.
+    It adds a modification which thresholds pixels based on their saturation value and only uses pixels below the provided threshold in finding average pixel values
+    (http://docs.opencv.org/trunk/de/daa/group__xphoto.html);
+    - <b>denoising</b> - process that performs image denoising (http://docs.opencv.org/3.0-beta/modules/photo/doc/denoising.html);
+    - face detection via Haar cascades.
+
+    TonalProcessor –
+
 * recognizer   
   contains wrapper for work with Convolutional Neural Network.
 * starter  
