@@ -44,11 +44,9 @@ void FaceRecognizer::update(Dataset& newData)
 		while (newLabels[label] == -1) {
 			std::string str = m_facerec->getLabelInfo(newLabel);
 			if (str == info[label]) {
-				logInfo() << "Old label";
 				newLabels[label] = newLabel;
 			}
 			else if (str == "") {
-				logInfo() << "New label";
 				newLabels[label] = newLabel;
 				if (modelLabelCount == -1) {
 					modelLabelCount = newLabel;
