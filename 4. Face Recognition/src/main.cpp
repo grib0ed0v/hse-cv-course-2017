@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	std::string detectorConfig = "haarcascades";
+	std::string detectorConfig = ".";
 	FaceDetector detector(detectorConfig);
 
 	cv::VideoCapture cap(0);

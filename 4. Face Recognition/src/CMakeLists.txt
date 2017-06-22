@@ -42,6 +42,10 @@ file (GLOB CASCADES
 	"${CMAKE_SOURCE_DIR}/data/haarcascades/*.xml"
 )
 
+file (GLOB LBPCASCADES
+	"${CMAKE_SOURCE_DIR}/data/lbpcascades/*.xml"
+)
+
 IF (WIN32)
 	set (OUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>)
 
@@ -61,4 +65,6 @@ ENDIF()
 add_custom_command(TARGET iad_facerec POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${OUT_DIR}/haarcascades
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CASCADES} ${OUT_DIR}/haarcascades
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${OUT_DIR}/lbpcascades
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LBPCASCADES} ${OUT_DIR}/lbpcascades
 )
