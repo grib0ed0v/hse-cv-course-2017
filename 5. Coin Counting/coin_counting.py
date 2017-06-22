@@ -1,7 +1,8 @@
 import numpy as np
 import cv2
 from sklearn.externals import joblib
-
+import os
+import pickle
 
 def get_circles(img):
     final_rects = []
@@ -12,11 +13,11 @@ def get_circles(img):
 
     for x, y, w, h in rects:
         rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
-        cv2.imshow("edges+face {}".format(x), rect)
+        # cv2.imshow("edges+face {}".format(x), rect)
         final_rects.append(rect)
         cv2.rectangle(img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
                       (0, 0, 255), 2)
-    cv2.imshow("edges+face", img)
+    # cv2.imshow("edges+face", img)
     return final_rects
 
 
@@ -103,10 +104,12 @@ def adaptive_thresholding(img):
                                 cv2.THRESH_BINARY_INV, 11, 1)
     return res
 
+
 def morphology(img, parameter):
     kernel = np.ones((3, 3), np.uint8)
     res = cv2.morphologyEx(img, parameter, kernel, iterations=1)
     return res
+
 
 def delete_components(curr_img, color, part_1, part_2):
     img = curr_img.copy()
@@ -155,6 +158,7 @@ def delete_components(curr_img, color, part_1, part_2):
             img[l[0]][l[1]] = 255
     return img
 
+
 def diagonal_feature(img):
     new_img = img.copy()
     new_img = cv2.resize(new_img, (60, 90), interpolation=cv2.INTER_LINEAR)
@@ -199,6 +203,7 @@ def hist_features(img):
                 histogramm_features.append(square_features[i][0])
     return histogramm_features
 
+
 def get_features(img):
     diag_features = diagonal_feature(img)
     haar1, haar2 = haar_features(img)
@@ -206,6 +211,7 @@ def get_features(img):
     features = [haar1, haar2]
     features = np.concatenate((features, np.concatenate((diag_features, histogramm_features), axis=0)), axis=0)
     return features
+
 
 def test_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
@@ -218,7 +224,10 @@ def test_preprocessing(original_img):
         # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
         # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
         # cv2.imshow('Morph: {}'.format(i), rectangles[i])
-        thresholds.append(adaptive_thresholding(rectangles[i]))
+        adapt_thresh = adaptive_thresholding(rectangles[i])
+        adapt_thresh = adapt_thresh[:, ~np.all(adapt_thresh == 0, axis=0)]  # Remove columns where all elements are zero
+        adapt_thresh = adapt_thresh[~np.all(adapt_thresh == 0, axis=1)]  # Remove rows where all elements are zero
+        thresholds.append(adapt_thresh)
         cv2.imshow('Threshold: {}'.format(i), thresholds[i])
 
     res = []
@@ -255,19 +264,60 @@ def test_preprocessing(original_img):
         X.append(get_features(res[i]))
     return X
 
+def tr_test():
+    with open('train_img_0.26_x.pkl', 'rb') as f:
+        x_train = pickle.load(f)
+    with open('train_img_0.26_y.pkl', 'rb') as f:
+        y_train = pickle.load(f)
+    clf = joblib.load('classificator_new.pkl')
+    print('Score: {}'.format(clf.score(x_train, y_train)))
+
+def train_data_test():
+    part = 0.1
+    base_dir = 'train_img_0.26'
+    clf = joblib.load('classificator_new.pkl')
+    total_count = 0
+    total_errors = 0
+    for y_test in os.listdir(base_dir):
+        images = os.listdir(os.path.join(base_dir, y_test))
+        count = int(len(images)*part)
+        random_subset = np.random.choice(images, count)
+        print('Random files. Count = {}, files: {}'.format(count, random_subset))
+        for img_name in random_subset:
+            print('Processing image: {}'.format(os.path.join(base_dir, y_test, img_name)))
+            img = cv2.imread(os.path.join(base_dir, y_test, img_name))
+            x_test = test_preprocessing(img)
+            print('Found {} coins.'.format(len(x_test)))
+            y_sum = 0
+            for i in range(len(x_test)):
+                coin_value = clf.predict([x_test[i]])
+                coin_value = int(coin_value[0])
+                print('Find coin with value = {}'.format(coin_value))
+                y_sum = y_sum + coin_value
+            print('Expected value = {}, predicted_value = {}'.format(y_test, y_sum))
+            if y_test != y_sum:
+                total_errors = total_errors + 1
+            total_count = total_count + 1
+    print('Finish. Total count: {}, total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
 
 def main():
-    img = cv2.imread("Pic4.jpg")
-    clf = joblib.load('classificator.pkl')
+    print('Read image...')
+    img = cv2.imread("test_images/Picture4.jpg")
+    print('Image read. Loading classificator...')
+    clf = joblib.load('classificator_new.pkl')
+    print('Getting features...')
     x_test = test_preprocessing(img)
     y_test = []
     for i in range(len(x_test)):
         y_test.append(clf.predict(x_test[i]))
 
-    y_sum=0
+    y_sum = 0
     for k in range(y_test.__len__()):
-        y_sum=y_sum+int(y_test[k][0])
+        print('y test #{} = {}'.format(k, y_test[k][0]))
+        y_sum = y_sum + int(y_test[k][0])
     print(y_sum)
 
+
 if __name__ == '__main__':
-    main()
+    # main()
+    train_data_test()
