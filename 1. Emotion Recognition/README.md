@@ -7,6 +7,10 @@
 Download: https://www.continuum.io/downloads 
 * OpenCV 3.2 version to work with DNN module   
 To install: conda install -c conda-forge opencv=3.2.0
+* Emotion Recognition Caffe model (<i>EmotiW_VGG_S.caffemodel</i>):  
+Available here: https://gist.github.com/GilLevi/54aee1b8b0397721aa4b
+* Emotion Recognition Caffe model configuration:  
+Available here: https://gist.github.com/GilLevi/54aee1b8b0397721aa4b#file-deploy-txt
 
 ###How to run:  
 * `cd <path_to_folder>/1.Emotion Recognition/starter`
@@ -40,7 +44,7 @@ If both parameters(-i, -v) are specified or there is an issue with device or fil
     
     starts flowexecutor, which encapsulates image processing logic 
 ---
-### Configuration and Resources
+### Configuration
 As this application suggests to use image preprocessors, there is a configuration for pipeline in <i>config.ini</i>.
 
 This block specifies which processors will be used and their order. E.g.:
@@ -61,9 +65,24 @@ If processor configuration block has been missed, but processor was specified in
 Also <i>config.ini</i> contains Face Detector configuration.
 ```
 [FaceDetector]
+cascadeClassifier = ./resources/haarcascade_frontalface_default.xml
 scaleFactor = 1.3
 minNeighbors = 4
 minSize_x = 40
 minSize_y = 40
 ```
-Face Detector is one of the application key elements, but it is out of processors pipeline.
+Face Detector is one of the application key elements, but it is out of processors pipeline.  
+<i>Note</i>: You might specify your own cascade classifier for Face Detection problem via `cascadeClassifier` parameter.
+
+###Resources
+Resource folder contains following files:
+* <b>config.ini</b>  
+described in previous section
+* <b>haarcascade_frontalface_default.xml</b>  
+default cascade for face detection from OpenCV (download: https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
+* <b>EmotiW_VGG_S.caffemodel</b>  
+description is provided in Prerequisites section
+* <b>deploy.txt</b>  
+description is provided in Prerequisites section
+
+<i>Note</i>: Some files have large size. You will have to download them separately via specified links.

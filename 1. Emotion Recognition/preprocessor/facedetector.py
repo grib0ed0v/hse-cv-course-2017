@@ -3,8 +3,8 @@ import logging
 
 
 class FaceDetector:
-    def __init__(self, scaleFactor, minNeighbors, minSize):
-        self.frontal_face_cascade = cv2.CascadeClassifier('./resources/haarcascade_frontalface_default.xml')
+    def __init__(self, cascade_classifier_path, scaleFactor, minNeighbors, minSize):
+        self.frontal_face_cascade = cv2.CascadeClassifier(cascade_classifier_path)
         self.scaleFactor = scaleFactor
         self.minNeighbors = minNeighbors
         self.minSize = minSize
