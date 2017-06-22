@@ -9,8 +9,7 @@ def check_match(matches, threshold, txt):
             if (int(matches[i].distance) <= threshold):
                 count += 1
         return count
-    else:
-        print str(txt) + " not found"
+
 
 #########################################
 #########################################
@@ -68,7 +67,7 @@ dst = cv2.perspectiveTransform(pts, M)
 print dst
 dm.drawMatches(C, kpc, gquery, kpq, good)
 # cv2.rectangle(gquery,[np.int32(dst[0][0])],[np.int32(dst[3][0])],thickness=-1,color = (255,0,0))
-cv2.polylines(gquery, [np.int32(dst)], True, 0, thickness=15)
+cv2.fillPoly(gquery, [np.int32(dst)], color = (255,255,255))
 
 cv2.imshow("etalon", gquery)
 cv2.waitKey()
