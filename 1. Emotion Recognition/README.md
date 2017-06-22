@@ -142,7 +142,7 @@ whiteBalancer.balanceWhite(image, image)
 Pay attention to color correction, cause this might strongly affect result.  
 
 Color correction for image
-![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/color%20correction.jpg "Color correction")
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/color%20correction.jpg "Color correction")
 
 Here you might see all described processors in one gif.  
 ![alt text](https://github.com/grib0ed0v/hse-cv-course-2017/blob/Emotion-Recognition/1.%20Emotion%20Recognition/materials/processors_gif.gif "All in one")
@@ -156,4 +156,4 @@ This neural network applies RGB images(224x224) and produces array with emotion 
 It can predict: 'Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise' emotions.
 According to the paper this network provides following results:  
 Paper results (Confusion Matrix)  
-![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/Paper_results.JPG "Confusion Matrix")
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/Paper_results.JPG "Confusion Matrix")
