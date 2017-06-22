@@ -1,8 +1,8 @@
-#Emotion Recognition Project
+# Emotion Recognition Project
 <b>Authors</b>: Maxim Viko, Inna Vasiljeva, Alexander Kozitsin, Elena Pavlova  
 <b>Insipred by</b>: Alexey Gruzdev
 
-###Prerequisites: 
+### Prerequisites: 
 * Anaconda with Python 3   
 Download: https://www.continuum.io/downloads 
 * OpenCV 3.2 version to work with DNN module   
@@ -12,7 +12,7 @@ Available here: https://gist.github.com/GilLevi/54aee1b8b0397721aa4b
 * Emotion Recognition Caffe model configuration:  
 Available here: https://gist.github.com/GilLevi/54aee1b8b0397721aa4b#file-deploy-txt
 
-###How to run:  
+### How to run:  
 * `cd <path_to_folder>/1.Emotion Recognition/starter`
 * `<path_to_python>/python.exe run.py [args]`  
 Available arguments described in section below.
@@ -26,7 +26,7 @@ Program applies following command line arguments:
 If no arguments specified, application start working with videostream from default(0) device.  
 If both parameters(-i, -v) are specified or there is an issue with device or file, application will raise appropriate exception.  
 ---
-###High level architecture:
+### High level architecture:
 * preprocessor  
     implements image preprocessing pipeline, which contains following building blocks:
     - tonal correction;
@@ -74,7 +74,7 @@ minSize_y = 40
 Face Detector is one of the application key elements, but it is out of processors pipeline.  
 <i>Note</i>: You might specify your own cascade classifier for Face Detection problem via `cascadeClassifier` parameter.
 
-###Resources
+### Resources
 Resource folder contains following files:
 * <b>config.ini</b>  
 described in previous section
