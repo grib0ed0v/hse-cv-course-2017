@@ -80,6 +80,7 @@ minSize_y = 40
 Face Detector is one of the application key elements, but it is out of processors pipeline.  
 <i>Note</i>: You might specify your own cascade classifier for Face Detection problem via `cascadeClassifier` parameter.
 
+---
 ### Resources
 Resource folder contains following files:
 * <b>config.ini</b>  
@@ -93,6 +94,7 @@ description is provided in Prerequisites section
 
 <i>Note</i>: Some files have large size. You will have to download them separately via specified links.
 
+---
 ### Preprocessors
 In this section preprocessor's impact on picture is described. All of them applied independently to the same original image.  
 
@@ -144,3 +146,14 @@ Color correction for image
 
 Here you might see all described processors in one gif.  
 ![alt text](https://github.com/grib0ed0v/hse-cv-course-2017/blob/Emotion-Recognition/1.%20Emotion%20Recognition/materials/processors_gif.gif "All in one")
+
+---
+### Convolutional Neural Network
+<i>more info is available here: https://gist.github.com/GilLevi/54aee1b8b0397721aa4b</i>
+<i>project page: http://www.openu.ac.il/home/hassner/projects/cnn_emotions/</i>  
+
+This neural network applies RGB images(224x224) and produces array with emotion probabilities.  
+It can predict: 'Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise' emotions.
+According to the paper this network provides following results:  
+Paper results (Confusion Matrix)  
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/Paper_results.JPG "Confusion Matrix")
