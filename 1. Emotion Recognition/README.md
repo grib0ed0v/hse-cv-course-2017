@@ -41,8 +41,6 @@ If both parameters(-i, -v) are specified or there is an issue with device or fil
     - <b>denoising</b> - process that performs image denoising (http://docs.opencv.org/3.0-beta/modules/photo/doc/denoising.html);
     - face detection via Haar cascades.
 
-    TonalProcessor –
-
 * recognizer   
   contains wrapper for work with Convolutional Neural Network.
 * starter  
