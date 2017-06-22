@@ -8,6 +8,15 @@
 
 #include <opencv2/opencv.hpp>
 
+const struct ConfigNames
+{
+	std::string manager = "manager_config.json";
+	std::string detector = "detector_config.json";
+	std::string recognizer = "facerec_config";
+	std::string folders = "folders.json";
+	std::string recognizerparams = "facerec_params_config.json";
+} g_configNames;
+
 struct ProgramParams
 {
 	std::string configFolder;
@@ -194,7 +203,7 @@ ProgramParams prepareParams(int argc, char* argv[])
 	}
 	config = g_argParser.params();
 
-	ProgramParams storedFolders = readProgramFolders("folders.json");
+	ProgramParams storedFolders = readProgramFolders(g_configNames.folders);
 	if (config.configFolder.empty()) {
 		config.configFolder = storedFolders.configFolder;
 	}
@@ -318,7 +327,7 @@ void processImage(ProgramParams config, FaceRecognizer* pRecognizer = nullptr)
 			std::string pred = pRecognizer->predict(face.image);
 			if (pred.empty()) pred = "unknown";
 			logInfo() << pred;
-			
+
 			if (config.outputPath.empty()) {
 				continue;
 			}
@@ -349,14 +358,70 @@ bool ensureOutput(std::string& output)
 	return true;
 }
 
-const struct ConfigNames
+bool promptYN(std::string prompt, bool defaultValue = false)
 {
-	std::string manager = "manager_config.json";
-	std::string detector = "detector_config.json";
-	std::string recognizer = "facerec_config";
-	std::string folders = "folders.json";
-	std::string recognizerparams = "facerec_params_config.json";
-} g_configNames;
+	bool resp = false;
+	std::string response;
+	char ychar = defaultValue ? 'Y' : 'y';
+	char nchar = defaultValue ? 'n' : 'N';
+	std::string yesNo = " (";
+	yesNo += ychar;
+	yesNo += "(es)/";
+	yesNo += nchar;
+	yesNo += "(o)): ";
+	while (true) {
+		std::cout << prompt << yesNo;
+		std::getline(std::cin, response);
+		if (response.empty()) {
+			return defaultValue;
+		}
+
+		std::transform(response.begin(), response.end(), response.begin(), tolower);
+		if (response == "y" || response == "yes") {
+			resp = true;
+			break;
+		} else if (response == "n" || response == "no") {
+			resp = false;
+			break;
+		}
+		std::cout << "Yes or no, please" << std::endl;
+	}
+	return resp;
+}
+
+void saveImages(ProgramParams config, const Dataset& newData) {
+	if (!fs::pathExists(config.datasetFolder) && !fs::mkdir(config.datasetFolder)) {
+		logError() << "Could not create folder:" << config.datasetFolder;
+		return;
+	}
+
+	std::map<label_t, size_t> createdImages;
+	for (size_t i = 0; i < newData.images().size(); ++i) {
+		const cv::Mat& image = newData.images()[i];
+		const label_t label = newData.labels()[i];
+		const std::string& str = newData.stringByLabel(label);
+
+		std::string imgFolder = fs::concatPath(config.datasetFolder, str);
+		if (!fs::pathExists(imgFolder) && !fs::mkdir(imgFolder)) {
+			logError() << "Could not create folder:" << imgFolder;
+			return;
+		}
+
+		while (true) {
+			size_t imgNumber = createdImages[label]++;
+			std::string imgName = std::to_string(imgNumber) + ".png";
+			std::string imgPath = fs::concatPath(imgFolder, imgName);
+			if (fs::pathExists(imgPath)) {
+				continue;
+			}
+			if (!cv::imwrite(imgPath, image)) {
+				logError() << "Could not write" << imgPath;
+				break;
+			}
+			break;
+		}
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -431,6 +496,17 @@ int main(int argc, char* argv[])
 
 	WebcamUI ui("frame", cap, detector, facerec);
 	ui.videoLoop();
+
+	if (!facerec.newData().images().empty()) {
+		if (!config.datasetFolder.empty() && promptYN("Save new images?")) {
+			saveImages(config, facerec.newData());
+			logInfo() << "Done";
+		}
+		if (promptYN("Update stored recognizer with new data?")) {
+			facerec.save(recognizerConfig);
+			logInfo() << "Done";
+		}
+	}
 
 	writeProgramFolders(config, g_configNames.folders);
 	return 0;

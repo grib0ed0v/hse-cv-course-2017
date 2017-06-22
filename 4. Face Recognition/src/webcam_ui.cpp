@@ -7,7 +7,8 @@
 enum ScanCodes
 {
 	KeyEsc = 27,
-	KeyReturn = 13,
+	KeyLF = 10,
+	KeyCR = 13,
 	KeySpace = 32,
 };
 
@@ -99,7 +100,7 @@ void WebcamUI::promptForName()
 	}
 
 	while (true) {
-		std::cout << "Take more pictures? (Y(es)/n(o)): ";
+		std::cout << "Take more pictures? (y(es)/n(o)): ";
 		std::getline(std::cin, response);
 
 		std::transform(response.begin(), response.end(), response.begin(), tolower);
@@ -230,11 +231,15 @@ void WebcamUI::processKey(int key)
 			setMode(Mode::AddingFace);
 			cv::setWindowTitle(m_windowName, std::string("Select face for ") + m_nameToAdd);
 			break;
+		case Mode::AddingFace:
+			setMode(Mode::DetectingFaces);
+			break;
 		default:
 			break;
 		}
 		break;
-	case KeyReturn:
+	case KeyLF:
+	case KeyCR:
 		if (m_mode == Mode::DetectingFaces) {
 			commitFaces();
 			setMode(Mode::Recognizing);
