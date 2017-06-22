@@ -3,6 +3,8 @@ import cv2
 import os
 from sklearn import svm
 from sklearn.externals import joblib
+import sys
+import pickle
 
 
 def get_circles(img):
@@ -50,7 +52,7 @@ def find_circles(img):
 
     # cv2.imshow("Adaptive Thresholding", thresh)
     # cv2.imshow("Morphological Closing", closing)
-    cv2.imshow('Contours', img_2)
+    # cv2.imshow('Contours', img_2)
     return circles
 
 
@@ -214,9 +216,11 @@ def train_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
     rectangles = get_circles(grey_img)
     thresholds = []
+
+    if len(rectangles) == 0:
+        return None
+
     for i in range(1):
-        rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
-        # cv2.imshow('Cut: {}'.format(i), rectangles[i])
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         # cv2.imshow('Canny: {}'.format(i), rectangles[i])
         ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
@@ -258,32 +262,41 @@ def train_preprocessing(original_img):
         # Result
         res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
                         cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
-        cv2.imshow('RES', res[0])
+        # cv2.imshow('RES', res[0])
     return get_features(res[0])
 
 
 def train_samples(path):
     labels = []
     x = []
-    for folder_name in os.listdir(path)[0:1]:
+    for folder_name in os.listdir(path):
         # Process only folders
         if os.path.isdir(os.path.join(path, folder_name)):
-            for img_filename in os.listdir(os.path.join(path, folder_name))[0:1]:
+            for img_filename in os.listdir(os.path.join(path, folder_name)):
                 img = cv2.imread(os.path.join(path, folder_name, img_filename))
-                column, row, channel = img.shape
-                cv2.imshow('Origin', img)
-                x.append(train_preprocessing(img))
-                labels.append(folder_name)
+                # column, row, channel = img.shape
+                # cv2.imshow('Origin', img)
+                img_x = train_preprocessing(img)
+                if not img_x is None:
+                    x.append(img_x)
+                    labels.append(folder_name)
     return x, labels
 
 
 def main():
-    path = 'train_img_0.12'
+    path = 'train_img_0.26'
+    print('Getting features from training images...')
     x, y = train_samples(path)
+    with open('{}_x.pkl'.format(path), 'wb') as f:
+        pickle.dump(x, f)
+    with open('{}_y.pkl'.format(path), 'wb') as f:
+        pickle.dump(y, f)
+    print('Finished getting features. Creating and training model...')
     clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
     clf.fit(x, y)
-    joblib.dump(clf, 'classificator.pkl')
-    cv2.waitKey()
+    print('Finished training model. Dump it to file...')
+    joblib.dump(clf, 'classificator_new.pkl')
+    print('Dump trained model to file. Finish.')
 
 
 if __name__ == '__main__':
