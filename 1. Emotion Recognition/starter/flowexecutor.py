@@ -21,7 +21,7 @@ class FlowExecutor:
     # add bounding box of appropriate color with emotions label
     def __add_labeled_bounding_box(self, image, predicted_emotion, pt1, pt2):
         cv2.rectangle(image, pt1, pt2, (0, 255, 0))
-        cv2.putText(image, predicted_emotion, (pt1[0], pt1[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0))
+        cv2.putText(image, predicted_emotion, (pt1[0], pt1[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
 
     def execute(self, image):
         image_copy = image.copy()

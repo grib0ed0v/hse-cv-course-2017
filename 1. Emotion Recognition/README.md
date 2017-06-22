@@ -21,8 +21,7 @@ Program applies following command line arguments:
 * -i \<path to image\>
 * -i \<path to folder with images\>
 * -v \<id of the opened video capturing device\>
-* -v \<path to video file\>
-
+* -v \<path to video file\>  
 If no arguments specified, application start working with videostream from default(0) device.  
 If both parameters(-i, -v) are specified or there is an issue with device or file, application will raise appropriate exception.  
 ---
@@ -93,3 +92,55 @@ description is provided in Prerequisites section
 description is provided in Prerequisites section
 
 <i>Note</i>: Some files have large size. You will have to download them separately via specified links.
+
+### Preprocessors
+In this section preprocessor's impact on picture is described. All of them applied independently to the same original image.  
+
+Original Image
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/1.jpg "Original image")
+
+Let's tune contrast with following code:
+```
+hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+h, s, v = cv2.split(hsv)
+clahe = cv2.createCLAHE(self.clipLimit, self.tileGridSize)
+v = clahe.apply(v)
+hsv = cv2.merge((h, s, v))
+cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB, image)
+```
+Contrasted Image
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/contrast.jpg "Contrast image")
+
+Let's apply Denoising via following code:
+```
+cv2.fastNlMeansDenoisingColored(image, image, self.h, self.hColor, self.templateWindowSize, self.searchWindowSize)
+```
+It should be noticed, that denoising is quite expensive operation, so there is a need to tune parameters carefully.
+
+Denoising with following parameters: [h = 10, hColor = 10, templateWindowSize = 7, searchWindowSize = 21]
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/denoising%2010%2C10%2C7%2C21.jpg "Denoised image")
+
+Denoising with following parameters: [h = 5, hColor = 5, templateWindowSize = 5, searchWindowSize = 7]
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/denoising%205%2C5%2C5%2C7.jpg "Denoised image")
+
+Tonal correction might be done via following code:
+```
+new_gamma = 1.0 / self.gamma
+adj_gamma = np.array([((i / 255.0) ** new_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")  # build table with their adjusted gamma values
+cv2.LUT(image, adj_gamma, image)  # function LUT fills the output array with values from the adjusted gamma
+```
+Tonal correction with gamma = 1.4
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/tonal%20correction%20gamma%20%3D%201.4.jpg "Tonal correction")
+
+Color correction is done via following code:
+```
+whiteBalancer = cv2.xphoto.createGrayworldWB()
+whiteBalancer.balanceWhite(image, image)
+```
+Pay attention to color correction, cause this might strongly affect result.  
+
+Color correction for image
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/c9d9295bf827f536148fcf0941336c3d7b158784/1.%20Emotion%20Recognition/materials/color%20correction.jpg "Color correction")
+
+Here you might see all described processors in one gif.  
+![alt text](https://github.com/grib0ed0v/hse-cv-course-2017/blob/Emotion-Recognition/1.%20Emotion%20Recognition/materials/processors_gif.gif "All in one")
