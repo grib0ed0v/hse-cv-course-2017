@@ -8,8 +8,8 @@ from utils import *
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--template', help="template file")
-    parser.add_argument('--file', help="target file")
+    parser.add_argument('--template', '-t', help="template file")
+    parser.add_argument('--target_file', '-f', help="target file")
     args = parser.parse_args()
     return args
 
