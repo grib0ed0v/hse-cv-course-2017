@@ -209,7 +209,7 @@ void preprocessDataset(ProgramParams config)
 		return;
 	}
 
-	FaceDetector detector(config.cascadeFolder);
+	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, "detector.yml"));
 
 	Dataset data;
 	if (config.datasetFolder.empty()) {
@@ -278,7 +278,7 @@ void processImage(ProgramParams config, FaceRecognizer* pRecognizer = nullptr)
 		return;
 	}
 
-	FaceDetector detector(config.cascadeFolder);
+	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, "detector.yml"));
 	size_t createdImages = 0;
 
 	std::vector<FaceDetector::FaceRegion> faces = detector.detect(image);
@@ -321,6 +321,14 @@ bool ensureOutput(std::string& output)
 	return true;
 }
 
+const struct ConfigNames
+{
+	std::string manager = "manager_config.json";
+	std::string detector = "detector_config.json";
+	std::string recognizer = "facerec_config";
+	std::string folders = "folders.json";
+} g_configNames;
+
 int main(int argc, char* argv[])
 {
 	ProgramParams config = prepareParams(argc, argv);
@@ -344,7 +352,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	std::string recognizerConfig = fs::concatPath(config.configFolder, "facerec_config");
+	std::string recognizerConfig = fs::concatPath(config.configFolder, g_configNames.recognizer);
 	FaceRecognizer facerec;
 	if (!config.retrain && fs::pathExists(recognizerConfig)) {
 		logInfo() << "Loading pre-trained model from" << recognizerConfig;
@@ -356,7 +364,7 @@ int main(int argc, char* argv[])
 	}
 	if (!config.datasetFolder.empty()) {
 		DatasetManager mgr;
-		std::string mgrConfig = fs::concatPath(config.configFolder, "mgr_config.xml");
+		std::string mgrConfig = fs::concatPath(config.configFolder, g_configNames.manager);
 		mgr.readConfig(mgrConfig);
 		mgr.load(config.datasetFolder);
 		if (config.retrain || mgr.datasetChanged() || !facerec.ready()) {
@@ -382,7 +390,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	FaceDetector detector(config.cascadeFolder);
+	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, g_configNames.detector));
 
 	cv::VideoCapture cap(0);
 	if (!cap.isOpened()) {
@@ -394,6 +402,6 @@ int main(int argc, char* argv[])
 	WebcamUI ui("frame", cap, detector, facerec);
 	ui.videoLoop();
 
-	writeProgramFolders(config, "folders.xml");
+	writeProgramFolders(config, g_configNames.folders);
 	return 0;
 }

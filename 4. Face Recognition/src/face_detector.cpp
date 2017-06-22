@@ -8,31 +8,55 @@
 
 static const double PI = 3.14159265358979323846;
 
-FaceDetector::FaceDetector(const std::string& configPath)
+FaceDetector::FaceDetector(const std::string& cascadePath, const std::string& configPath)
 {
-	std::string haars = fs::concatPath(configPath, "haarcascades");
-	std::string lbps = fs::concatPath(configPath, "lbpcascades");
-	m_classifier.load(fs::concatPath(haars, "haarcascade_frontalface_default.xml"));
-	//m_classifier.load(fs::concatPath(lbps, "lbpcascade_frontalface_improved.xml"));
-	//m_classifier.load(fs::concatPath(lbps, "lbpcascade_frontalface.xml"));
+	if (!fs::pathExists(configPath)) {
+		saveConfig(configPath);
+	} else {
+		if (!readConfig(configPath)) {
+			logWarning() << "FaceDetector config exists, but can't be read from" << configPath;
+		}
+	}
+	m_classifier.load(fs::concatPath(cascadePath, m_config.cascades.classifierPath));
 
-	//m_eyeClassifier.load(fs::concatPath(haars, "haarcascade_eye.xml"));
-	m_leftEyeClassifier.load(fs::concatPath(haars, "haarcascade_mcs_lefteye.xml"));
-	m_rightEyeClassifier.load(fs::concatPath(haars, "haarcascade_mcs_righteye.xml"));
-	m_eyeglassClassifier.load(fs::concatPath(haars, "haarcascade_eye_tree_eyeglasses.xml"));
+	m_leftEyeClassifier.load(fs::concatPath(cascadePath, m_config.cascades.leftEyeClassifierPath));
+	m_rightEyeClassifier.load(fs::concatPath(cascadePath, m_config.cascades.rightEyeClassifierPath));
+
+	m_eyeglassClassifier.load(fs::concatPath(cascadePath, m_config.cascades.eyeglassClassifierPath));
+}
+
+bool FaceDetector::readConfig(const std::string& path)
+{
+	return m_config.read(path);
+}
+
+bool FaceDetector::saveConfig(const std::string& path)
+{
+	return m_config.write(path);
 }
 
 void FaceDetector::denoise(cv::Mat& img)
 {
 	cv::Mat dest = img.clone();
-	cv::bilateralFilter(img, dest, 5, 50, 50);
+	cv::bilateralFilter(img, dest, m_config.denoise.d, m_config.denoise.sigmaColor, m_config.denoise.sigmaSpace);
 	img = dest;
+}
+
+void FaceDetector::resize(cv::Mat& img)
+{
+	float scaleFactor = m_config.resize.size / std::max(img.rows, img.cols);
+	cv::resize(img, img, cv::Size(), scaleFactor, scaleFactor, scaleFactor > 1.0f ? CV_INTER_CUBIC : CV_INTER_AREA);
 }
 
 cv::Point2i FaceDetector::detectEye(cv::CascadeClassifier& classifier, cv::Mat img)
 {
 	std::vector<cv::Rect> eyeRects;
-	classifier.detectMultiScale(img, eyeRects, 1.1, 6, cv::CASCADE_FIND_BIGGEST_OBJECT, cv::Size(img.cols/6, img.rows/6), cv::Size(img.cols/2, img.rows/2));
+	classifier.detectMultiScale(img, eyeRects,
+		m_config.eyeDetect.scaleFactor,
+		m_config.eyeDetect.minNeighbors,
+		cv::CASCADE_FIND_BIGGEST_OBJECT,
+		cv::Size((int)(img.cols * m_config.eyeDetect.minSizeFactor), (int)(img.rows * m_config.eyeDetect.minSizeFactor)),
+		cv::Size((int)(img.cols * m_config.eyeDetect.maxSizeFactor), (int)(img.rows * m_config.eyeDetect.maxSizeFactor)));
 
 	if (eyeRects.empty())
 		return cv::Point2i(-1, -1);
@@ -47,8 +71,8 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 {
 	std::vector<cv::Rect> eyeRects;
 
-	int eyesTop = (int)(img.rows / 4);
-	int eyesBottom = (int)(img.rows / 1.5);
+	int eyesTop = (int)(img.rows * m_config.geometry.eyeTopFactor);
+	int eyesBottom = (int)(img.rows * m_config.geometry.eyeBottomFactor);
 
 	cv::Mat topLeft(img, cv::Range(eyesTop, eyesBottom), cv::Range(0, img.cols/2));
 	cv::Mat topRight(img, cv::Range(eyesTop, eyesBottom), cv::Range(img.cols/2, img.cols));
@@ -80,7 +104,7 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 
 	double angle = atan2(dy, dx) * 180.0 / PI;
 
-	if (std::abs(angle) > 30.0)
+	if (std::abs(angle) > m_config.geometry.maxAngle)
 		return;
 
 	int centerX = leftEye.x + dx / 2;
@@ -92,7 +116,7 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 	cv::warpAffine(img, rotated, rotationMat, img.size());
 
 	img = rotated;
-	//img.forEach<uint8_t>([](uint8_t &p, const int*) { p = (p == 0 ? 127 : p);});
+	img.forEach<uint8_t>([](uint8_t &p, const int*) { p = (p == 0 ? 127 : p);});
 
 	//int sum = 0;
 	//img.forEach<uint8_t>([&sum](uint8_t &p, const int*) { sum += p; });
@@ -108,7 +132,7 @@ void FaceDetector::normalizeIllumination(cv::Mat& img)
 	cv::Mat lookUpTable(1, 256, CV_8U);
 
 	uint8_t* p = lookUpTable.ptr();
-	double gamma = 0.7;
+	double gamma = m_config.illumination.gamma;
 	for( int i = 0; i < 256; ++i)
 		p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, gamma) * 255.0);
 	cv::Mat res = img.clone();
@@ -117,8 +141,8 @@ void FaceDetector::normalizeIllumination(cv::Mat& img)
 	img = res;
 	//cv::imshow("gamma", img);
 
-	float claheFactor = 0.1f;
-	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size((int)(claheFactor * img.cols), (int)(claheFactor * img.rows)));
+	double claheFactor = m_config.illumination.claheFactor;
+	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(m_config.illumination.clipLimit, cv::Size((int)(claheFactor * img.cols), (int)(claheFactor * img.rows)));
 	clahe->apply(img, img);
 	//cv::imshow("clahe", img);
 	//cv::equalizeHist(img, img);
@@ -128,7 +152,10 @@ void FaceDetector::applyMask(cv::Mat& img)
 {
 	cv::Mat mat(img.size(), CV_8U, cv::Scalar(0));
 	cv::Point center(img.size().width/2, img.size().height/2);
-	cv::ellipse(mat, center, cv::Size((int)(img.cols * 0.4), (int)(img.rows * 0.7)), 0, 0, 360, cv::Scalar(255), CV_FILLED);
+	cv::ellipse(mat,
+		center, 
+		cv::Size((int)(img.cols * m_config.mask.axeXFactor), (int)(img.rows * m_config.mask.axeYFactor)),
+		0, 0, 360, cv::Scalar(255), CV_FILLED);
 	cv::Mat masked(img.size(), CV_8U, cv::Scalar(127));
 	img.copyTo(masked, mat);
 	img = masked;
@@ -140,8 +167,9 @@ cv::Mat FaceDetector::processFace(cv::Mat img)
 	geometryTransform(img);
 	normalizeIllumination(img);
 	denoise(img);
+	resize(img);
 	applyMask(img);
-	//cv::imshow("processed", img);
+	//cv::imshow("after", img);
 	return img;
 }
 
@@ -156,7 +184,10 @@ std::vector<FaceDetector::FaceRegion> FaceDetector::detect(cv::Mat img)
 	}
 
 	std::vector<cv::Rect> faceRects;
-	m_classifier.detectMultiScale(gray, faceRects, 1.2, 5, 0, cv::Size(30, 30));
+	m_classifier.detectMultiScale(gray, faceRects,
+		m_config.faceDetect.scaleFactor, m_config.faceDetect.minNeighbors,
+		0,
+		cv::Size(m_config.faceDetect.minSizeX, m_config.faceDetect.minSizeY));
 	std::vector<FaceRegion> faces;
 	faces.reserve(faceRects.size());
 	for (const cv::Rect& faceRect : faceRects) {
