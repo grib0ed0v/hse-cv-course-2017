@@ -295,7 +295,7 @@ def train_data_test():
                 print('Find coin with value = {}'.format(coin_value))
                 y_sum = y_sum + coin_value
             print('Expected value = {}, predicted_value = {}'.format(y_test, y_sum))
-            if y_test != y_sum:
+            if int(y_test) != y_sum:
                 total_errors = total_errors + 1
             total_count = total_count + 1
     print('Finish. Total count: {}, total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
