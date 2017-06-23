@@ -1,19 +1,19 @@
 # Template Matching
 ___
-**Authors:** Daria Moshkina, Alexey Zelenov, Alexander Semin, Kirill Starkov, Alexey Navalny
+**Authors:** Daria Moshkina, Alexey Zelenov, Alexandr Semin, Kirill Starkov
 
 **Insipred by:** Alexey Gruzdev
 
 ## Program description
 Program find template on target image.
-The algorithm uses SIFT features and FLANN knn matcher to detect matched keypoints between template and image
-Then it applies Meansgift clustering on matched keypoints in order to determine estimated numbers of templates for an image
-When we get the approximate quantity of templates, we use findHomography method and buila a bounding box for the first template, then we delete the first template from the image and repeat all steps described below as many times as the appriximate quantity of templates.
+The algorithm uses fatures found by SIFT algorithm and FLANN knn matcher to detect matched keypoints between template and image
+Then it applies Meanshift clustering on matched keypoints in order to determine estimated numbers of templates for an image
+When we get the approximate quantity of templates, we use findHomography method and build a bounding box for the first template, then we delete the first template from the image and repeat all steps described below as many times as the approximate quantity of templates.
 
-//TO DO Write fuc*ing description with screensots
+
 ### How to run:
 * `cd ${git_repository}/6. Template Matching/`
-* `python2 mathcing.py [args]`
+* `python2 template_mathcing.py [args]`
 
 Program applies following command line arguments:
 * `--template_file, -t` - path to template image
