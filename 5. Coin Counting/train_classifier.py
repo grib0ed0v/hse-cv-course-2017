@@ -283,18 +283,18 @@ def train_samples(path):
 
 
 def main():
-    path = 'train_img_0.26'
+    path = 'train_img_0.12'
     print('Getting features from training images...')
     x, y = train_samples(path)
-    with open('{}_x.pkl'.format(path), 'wb') as f:
+    with open('{}_x_new_2.pkl'.format(path), 'wb') as f:
         pickle.dump(x, f)
-    with open('{}_y.pkl'.format(path), 'wb') as f:
+    with open('{}_y_new_2.pkl'.format(path), 'wb') as f:
         pickle.dump(y, f)
     print('Finished getting features. Creating and training model...')
     clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
     clf.fit(x, y)
     print('Finished training model. Dump it to file...')
-    joblib.dump(clf, 'classificator.pkl')
+    joblib.dump(clf, 'classificator_new_2.pkl')
     print('Dump trained model to file. Finish.')
 
 

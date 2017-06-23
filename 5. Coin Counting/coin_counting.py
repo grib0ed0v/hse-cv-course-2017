@@ -282,8 +282,8 @@ def tr_test():
 
 def train_data_test():
     part = 0.1
-    base_dir = 'train_img_0.26'
-    clf = joblib.load('classificator.pkl')
+    base_dir = 'train_img_0.12'
+    clf = joblib.load('classificator_new_2.pkl')
     total_count = 0
     total_errors = 0
     for y_test in os.listdir(base_dir):
@@ -306,25 +306,22 @@ def train_data_test():
             if int(y_test) != y_sum:
                 total_errors = total_errors + 1
             total_count = total_count + 1
-            # print('Finish. Total count: {}, total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
+    print('Finish. Total count: {},  total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
 
 
 def main():
     print('Read image...')
     img = cv2.imread("test_images/Picture4.jpg")
     print('Image read. Loading classificator...')
-    clf = joblib.load('classificator.pkl')
+    clf = joblib.load('classificator_new_2.pkl')
     print('Getting features...')
     x_test = test_preprocessing(img)
-    y_test = []
-    for i in range(len(x_test)):
-        y_test.append(clf.predict(x_test[i]))
-
     y_sum = 0
-    for k in range(y_test.__len__()):
-        print('y test #{} = {}'.format(k, y_test[k][0]))
-        y_sum = y_sum + int(y_test[k][0])
-    print(y_sum)
+    for i in range(len(x_test)):
+        coin_value = int(clf.predict([x_test[i]])[0])
+        print('Coin value = {}'.format(coin_value))
+        y_sum = y_sum + coin_value
+    print('Sum = {}'.format(y_sum))
 
 
 if __name__ == '__main__':
