@@ -4,19 +4,20 @@ from sklearn.externals import joblib
 import os
 import pickle
 
+
 def get_circles(img):
     final_rects = []
     cascade = cv2.CascadeClassifier("cascade.xml")
-    sf = min(640. / img.shape[1], 480. / img.shape[0])
-    gray = cv2.resize(img, (0, 0), None, sf, sf)
+    new_img = img.copy()
+    sf = min(640. / new_img.shape[1], 480. / new_img.shape[0])
+    gray = cv2.resize(new_img, (0, 0), None, sf, sf)
     rects = cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40))
 
     for x, y, w, h in rects:
-        rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
-        # cv2.imshow("edges+face {}".format(x), rect)
+        rect = new_img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
         final_rects.append(rect)
-        cv2.rectangle(img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
-                      (0, 0, 255), 2)
+        # cv2.rectangle(img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
+        #               (0, 0, 255), 2)
     # cv2.imshow("edges+face", img)
     return final_rects
 
@@ -219,14 +220,17 @@ def test_preprocessing(original_img):
     thresholds = []
     for i in range(len(rectangles)):
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
-        # cv2.imshow('Canny: {}'.format(i), rectangles[i])
         ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
-        # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
-        # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
-        # cv2.imshow('Morph: {}'.format(i), rectangles[i])
         adapt_thresh = adaptive_thresholding(rectangles[i])
+        cv2.imshow('adapt_thresh: {}'.format(i), adapt_thresh)
+
         adapt_thresh = adapt_thresh[:, ~np.all(adapt_thresh == 0, axis=0)]  # Remove columns where all elements are zero
         adapt_thresh = adapt_thresh[~np.all(adapt_thresh == 0, axis=1)]  # Remove rows where all elements are zero
+        cv2.imshow('adapt_thresh_new: {}'.format(i), adapt_thresh)
+        rect_size = adapt_thresh.shape
+        a = rect_size[0]
+        b = rect_size[1]
+        adapt_thresh = adapt_thresh[int(0.1 * b): int(0.65 * b), int(0.15 * a): int(0.7 * a)]
         thresholds.append(adapt_thresh)
         cv2.imshow('Threshold: {}'.format(i), thresholds[i])
 
@@ -258,29 +262,33 @@ def test_preprocessing(original_img):
         # Result
         res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
                         cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
+        # cv2.imshow('Res: {}'.format(i), res[i])
+        # cv2.waitKey()
 
     X = []
     for i in range(len(res)):
         X.append(get_features(res[i]))
     return X
 
+
 def tr_test():
     with open('train_img_0.26_x.pkl', 'rb') as f:
         x_train = pickle.load(f)
     with open('train_img_0.26_y.pkl', 'rb') as f:
         y_train = pickle.load(f)
-    clf = joblib.load('classificator_new.pkl')
+    clf = joblib.load('classificator.pkl')
     print('Score: {}'.format(clf.score(x_train, y_train)))
+
 
 def train_data_test():
     part = 0.1
     base_dir = 'train_img_0.26'
-    clf = joblib.load('classificator_new.pkl')
+    clf = joblib.load('classificator.pkl')
     total_count = 0
     total_errors = 0
     for y_test in os.listdir(base_dir):
         images = os.listdir(os.path.join(base_dir, y_test))
-        count = int(len(images)*part)
+        count = int(len(images) * part)
         random_subset = np.random.choice(images, count)
         print('Random files. Count = {}, files: {}'.format(count, random_subset))
         for img_name in random_subset:
@@ -298,13 +306,14 @@ def train_data_test():
             if int(y_test) != y_sum:
                 total_errors = total_errors + 1
             total_count = total_count + 1
-    print('Finish. Total count: {}, total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
+            # print('Finish. Total count: {}, total errors: {}, error rate: {}'.format(total_count, total_errors, total_errors/total_count))
+
 
 def main():
     print('Read image...')
     img = cv2.imread("test_images/Picture4.jpg")
     print('Image read. Loading classificator...')
-    clf = joblib.load('classificator_new.pkl')
+    clf = joblib.load('classificator.pkl')
     print('Getting features...')
     x_test = test_preprocessing(img)
     y_test = []
@@ -319,5 +328,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    train_data_test()
+    main()
+    # train_data_test()

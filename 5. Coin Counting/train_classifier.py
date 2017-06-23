@@ -10,12 +10,13 @@ import pickle
 def get_circles(img):
     final_rects = []
     cascade = cv2.CascadeClassifier("cascade.xml")
-    sf = min(640. / img.shape[1], 480. / img.shape[0])
-    gray = cv2.resize(img, (0, 0), None, sf, sf)
+    new_img = img.copy()
+    sf = min(640. / new_img.shape[1], 480. / new_img.shape[0])
+    gray = cv2.resize(new_img, (0, 0), None, sf, sf)
     rects = cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(40, 40))
 
     for x, y, w, h in rects:
-        rect = img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
+        rect = new_img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
         final_rects.append(rect)
     return final_rects
 
@@ -216,25 +217,22 @@ def train_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
     rectangles = get_circles(grey_img)
     thresholds = []
-
     if len(rectangles) == 0:
         return None
 
     for i in range(1):
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
-        # cv2.imshow('Canny: {}'.format(i), rectangles[i])
         ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
-        # cv2.imshow('Thresh1: {}'.format(i), rectangles[i])
-        # rectangles[i] = morphology(rectangles[i], cv2.MORPH_CLOSE)
-        # cv2.imshow('Morph: {}'.format(i), rectangles[i])
         adapt_thresh = adaptive_thresholding(rectangles[i])
         adapt_thresh = adapt_thresh[:, ~np.all(adapt_thresh == 0, axis=0)]  # Remove columns where all elements are zero
         adapt_thresh = adapt_thresh[~np.all(adapt_thresh == 0, axis=1)]  # Remove rows where all elements are zero
+        rect_size = adapt_thresh.shape
+        a = rect_size[0]
+        b = rect_size[1]
+        adapt_thresh = adapt_thresh[int(0.1 * b): int(0.65 * b), int(0.15 * a): int(0.7 * a)]
         thresholds.append(adapt_thresh)
-        # cv2.imshow('Threshold: {}'.format(i), adapt_thresh)
 
     res = []
-    # Loop to 1!!!
     for i in range(1):
         curr_img = thresholds[i].copy()
         # delete contour
@@ -262,7 +260,8 @@ def train_preprocessing(original_img):
         # Result
         res.append(2 * (cv2.threshold(new_img1, 192, 255, cv2.THRESH_BINARY_INV)[1] +
                         cv2.threshold(new_img2, 192, 255, cv2.THRESH_BINARY_INV)[1]))
-        # cv2.imshow('RES', res[0])
+        # cv2.imshow('Res: {}'.format(i), res[i])
+        # cv2.waitKey()
     return get_features(res[0])
 
 
@@ -295,7 +294,7 @@ def main():
     clf = svm.SVC(kernel='rbf', C=30, gamma=0.026)
     clf.fit(x, y)
     print('Finished training model. Dump it to file...')
-    joblib.dump(clf, 'classificator_new.pkl')
+    joblib.dump(clf, 'classificator.pkl')
     print('Dump trained model to file. Finish.')
 
 
