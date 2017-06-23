@@ -26,6 +26,7 @@ struct ProgramParams
 	bool doPreprocessDataset = false;
 	bool doPreprocessImage = false;
 	bool doRecognizeImage = false;
+	bool doTestOnDataset = false;
 	std::string inputPath;
 	std::string outputPath;
 };
@@ -39,6 +40,7 @@ enum ProgramArgIds
 	PreprocessDataset,
 	PreprocessImage,
 	RecognizeImage,
+	TestDataset,
 	InputPath,
 	OutputPath,
 };
@@ -94,10 +96,17 @@ std::vector<ArgParser::Arg> g_programArgs = {
 		false
 	},
 	{
+		ProgramArgIds::TestDataset,
+		"td",
+		"test",
+		"Test recognizer against specified dataset",
+		false
+	},
+	{
 		ProgramArgIds::InputPath,
 		"i",
 		"intput",
-		"Specify input directiry or file for --preprocess, --preprocess-image and --recognize",
+		"Specify input directiry or file for --preprocess-image, --recognize, and --test",
 		true
 	},
 	{
@@ -158,6 +167,10 @@ protected:
 
 		case OutputPath:
 			m_params.outputPath = param;
+			break;
+
+		case TestDataset:
+			m_params.doTestOnDataset = true;
 			break;
 
 		default:
@@ -276,7 +289,7 @@ void preprocessDataset(ProgramParams config)
 
 		for (const std::string imgName : folderContent) {
 			std::string imgPath = fs::concatPath(folderPath, imgName);
-			cv::Mat image = cv::imread(imgPath, cv::IMREAD_GRAYSCALE);
+			cv::Mat image = cv::imread(imgPath, cv::IMREAD_COLOR);
 			if (image.data == nullptr) {
 				logError() << "Could not read" << imgPath;
 				continue;
@@ -309,7 +322,7 @@ void preprocessDataset(ProgramParams config)
 
 void processImage(ProgramParams config, FaceRecognizer* pRecognizer = nullptr)
 {
-	cv::Mat image = cv::imread(config.inputPath, cv::IMREAD_GRAYSCALE);
+	cv::Mat image = cv::imread(config.inputPath, cv::IMREAD_COLOR);
 	if (image.data == nullptr) {
 		logError() << "Could not read" << config.inputPath;
 		return;
@@ -423,6 +436,58 @@ void saveImages(ProgramParams config, const Dataset& newData) {
 	}
 }
 
+void testOnDataset(ProgramParams config, FaceDetector& detector, FaceRecognizer& recognizer)
+{
+
+	std::vector<std::string> datasetContent = fs::getFilesInDir(config.inputPath);
+	auto removeIt = std::remove_if(datasetContent.begin(), datasetContent.end(),
+		[&config](const std::string& path)
+	{
+		return !fs::isDir(fs::concatPath(config.inputPath, path));
+	});
+	datasetContent.erase(removeIt, datasetContent.end());
+
+	if (datasetContent.empty()) {
+		logError() << "Empty datset:" << config.inputPath;
+	}
+
+	size_t totalImg = 0;
+	size_t detectedImg = 0;
+	size_t multiDetections = 0;
+	size_t correctImg = 0;
+	for (const std::string& folderName : datasetContent) {
+		std::string folderPath = fs::concatPath(config.inputPath, folderName);
+		std::vector<std::string> folderContent = fs::getFilesInDir(folderPath);
+		if (folderContent.empty()) {
+			logWarning() << "Empty folder:" << folderPath;
+			continue;
+		}
+
+		for (const std::string imgName : folderContent) {
+			++totalImg;
+			std::string imgPath = fs::concatPath(folderPath, imgName);
+			cv::Mat image = cv::imread(imgPath, cv::IMREAD_COLOR);
+			if (image.data == nullptr) {
+				logError() << "Could not read" << imgPath;
+				continue;
+			}
+
+			std::vector<FaceDetector::FaceRegion> faces = detector.detect(image);
+			if (!faces.empty()) ++detectedImg;
+			if (faces.size() > 1) ++multiDetections;
+			for (const auto& face : faces) {
+				std::string pred = recognizer.predict(face.image);
+				logInfo() << pred << "(" << folderName << ")";
+				if (pred == folderName) ++correctImg;
+			}
+		}
+	}
+	logInfo() << "Images total:" << totalImg;
+	logInfo() << "Detected:" << detectedImg;
+	logInfo() << "Multidetect:" << multiDetections;
+	logInfo() << "Accuracy:" << (double)correctImg / totalImg << "(" << correctImg << "/" << totalImg << ")";
+}
+
 int main(int argc, char* argv[])
 {
 	ProgramParams config = prepareParams(argc, argv);
@@ -486,6 +551,11 @@ int main(int argc, char* argv[])
 	}
 
 	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, g_configNames.detector));
+
+	if (config.doTestOnDataset) {
+		testOnDataset(config, detector, facerec);
+		return 0;
+	}
 
 	cv::VideoCapture cap(0);
 	if (!cap.isOpened()) {

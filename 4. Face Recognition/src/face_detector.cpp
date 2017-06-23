@@ -183,6 +183,9 @@ cv::Mat FaceDetector::processFace(cv::Mat img)
 	if (m_config.debug.showResult) {
 		cv::imshow("after", img);
 	}
+	if (m_config.debug.waitKey) {
+		cv::waitKey(0);
+	}
 	return img;
 }
 
@@ -197,14 +200,33 @@ std::vector<FaceDetector::FaceRegion> FaceDetector::detect(cv::Mat img)
 	}
 
 	std::vector<cv::Rect> faceRects;
-	m_classifier.detectMultiScale(gray, faceRects,
-		m_config.faceDetect.scaleFactor, m_config.faceDetect.minNeighbors,
-		0,
-		cv::Size(m_config.faceDetect.minSizeX, m_config.faceDetect.minSizeY));
+	if (m_config.debug.noDetect) {
+		faceRects.push_back(cv::Rect(0, 0, img.cols, img.rows));
+	} else {
+		m_classifier.detectMultiScale(gray, faceRects,
+			m_config.faceDetect.scaleFactor, m_config.faceDetect.minNeighbors,
+			0,
+			cv::Size(m_config.faceDetect.minSizeX, m_config.faceDetect.minSizeY));
+	}
 	std::vector<FaceRegion> faces;
 	faces.reserve(faceRects.size());
-	for (const cv::Rect& faceRect : faceRects) {
-		cv::Mat processed = processFace(cv::Mat(gray, faceRect));
+	for (cv::Rect& faceRect : faceRects) {
+		if (std::abs(m_config.debug.extendRectFactor - 1.0) > 0.01) {
+			double factor = m_config.debug.extendRectFactor;
+			int dx = faceRect.width * factor - faceRect.width;
+			int dy = faceRect.height * factor - faceRect.height;
+			faceRect.x = std::max(0, faceRect.x - dx/2);
+			faceRect.y = std::max(0, faceRect.y - dy/2);
+			faceRect.width = std::min(img.cols - faceRect.x, faceRect.width + dx);
+			faceRect.height = std::min(img.rows - faceRect.y, faceRect.height + dy);
+		}
+		cv::Mat roi(m_config.debug.preserveColor ? img : gray, faceRect);
+		cv::Mat processed;
+		if (m_config.debug.noProcessing) {
+			processed = roi;
+		} else {
+			processed = processFace(roi);
+		}
 		faces.push_back({ faceRect, processed });
 	}
 	return faces;

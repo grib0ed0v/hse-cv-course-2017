@@ -214,20 +214,35 @@ private:
 		{
 			// bool does not work well
 			int showResult = false;
+			int waitKey = false;
 			int drawEyes = false;
+			int noDetect = false;
+			int noProcessing = false;
+			int preserveColor = false;
+			double extendRectFactor = 1.0;
 
 			void write(cv::FileStorage& fs) const
 			{
 
 				fs << "{"
 					STREAM_VAR(showResult)
+					STREAM_VAR(waitKey)
 					STREAM_VAR(drawEyes)
+					STREAM_VAR(noDetect)
+					STREAM_VAR(noProcessing)
+					STREAM_VAR(preserveColor)
+					STREAM_VAR(extendRectFactor)
 					<< "}";
 			}
 			void read(const cv::FileNode& node)
 			{
 				READ_VAR_NODE(showResult);
+				READ_VAR_NODE(waitKey);
 				READ_VAR_NODE(drawEyes);
+				READ_VAR_NODE(noDetect);
+				READ_VAR_NODE(noProcessing);
+				READ_VAR_NODE(preserveColor);
+				READ_VAR_NODE(extendRectFactor);
 			}
 		} debug;
 
