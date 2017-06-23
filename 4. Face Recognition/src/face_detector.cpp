@@ -152,11 +152,11 @@ void FaceDetector::normalizeIllumination(cv::Mat& img)
 	img = res;
 	//cv::imshow("gamma", img);
 
-	double claheFactor = m_config.illumination.claheFactor;
-	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(m_config.illumination.clipLimit, cv::Size((int)(claheFactor * img.cols), (int)(claheFactor * img.rows)));
+	int tileGridSize = m_config.illumination.claheTileSize;
+	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(m_config.illumination.clipLimit, cv::Size(tileGridSize, tileGridSize));
 	clahe->apply(img, img);
-	//cv::imshow("clahe", img);
 	//cv::equalizeHist(img, img);
+	//cv::imshow("clahe", img);
 }
 
 void FaceDetector::applyMask(cv::Mat& img)
@@ -175,11 +175,17 @@ void FaceDetector::applyMask(cv::Mat& img)
 cv::Mat FaceDetector::processFace(cv::Mat img)
 {
 	//cv::imshow("before", img);
+	//cv::imwrite("original.png", img);
 	denoise(img);
+	//cv::imwrite("denoise.png", img);
 	resize(img);
+	//cv::imwrite("resize.png", img);
 	geometryTransform(img);
+	//cv::imwrite("geometry.png", img);
 	normalizeIllumination(img);
+	//cv::imwrite("illumination.png", img);
 	applyMask(img);
+	//cv::imwrite("mask.png", img);
 	if (m_config.debug.showResult) {
 		cv::imshow("after", img);
 	}

@@ -145,7 +145,7 @@ private:
 		{
 			double gamma = 0.7;
 			double clipLimit = 2.0;
-			double claheFactor = 0.1f;
+			int claheTileSize = 8;
 
 			void write(cv::FileStorage& fs) const
 			{
@@ -153,14 +153,14 @@ private:
 				fs << "{"
 					STREAM_VAR(gamma)
 					STREAM_VAR(clipLimit)
-					STREAM_VAR(claheFactor)
+					STREAM_VAR(claheTileSize)
 				<< "}";
 			}
 			void read(const cv::FileNode& node)
 			{
 				READ_VAR_NODE(gamma);
 				READ_VAR_NODE(clipLimit);
-				READ_VAR_NODE(claheFactor);
+				READ_VAR_NODE(claheTileSize);
 			}
 		} illumination;
 
