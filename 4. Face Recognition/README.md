@@ -61,9 +61,9 @@ You will get warnings if your images confuse face detector. Remove (manually) fa
 ### Pipeline overview
 
 There are several stages of processing an image:
+ * Conversion to grayscale
  * Face detection
  * Preprocessing of individual faces
-   * Conversion to grayscale
    * Denoising
    * Resizing
    * Rotation
