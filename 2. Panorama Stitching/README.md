@@ -12,6 +12,6 @@
 ### How to run
 ```sh
 cd ../{directory with script and photos}
-python panorama_stitching.py 1.jpeg 2.jpeg 3.jpeg 4.jpeg
+python panorama_stitching.py 1.jpg 2.jpg 3.jpeg 4.jpg
 ```
-The result of work will be saved in the current directory as *result.jpeg*
+The result of work will be saved in the current directory as *result.jpg*
