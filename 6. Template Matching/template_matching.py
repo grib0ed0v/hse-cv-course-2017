@@ -8,8 +8,8 @@ from utils import *
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--template', default='pictures/C.png',help="template file")
-    parser.add_argument('--file', default = 'pictures/C1.jpg',help= "target file")
+    parser.add_argument('--template_file','-t', default='pictures/C.png',help="template file")
+    parser.add_argument('--target_file', '-f', default = 'pictures/C1.jpg',help= "target file")
     args = parser.parse_args()
     return args
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     args = parse_args()
     if args.template == None or args.file == None:
         raise IOError("Set please template and target files")
-    coke, query, C, gquery = load_etalon_query(args.template, args.file)
+    coke, query, C, gquery = load_etalon_query(args.template_file, args.target_file)
 
     kpc, desc, kpq, desq, src_pts, dst_pts, matches = keypoints_match(C, gquery)
     list_keypoints = get_points(kpq)
@@ -43,7 +43,6 @@ if __name__ == '__main__':
         dst = cv2.perspectiveTransform(pts,M)
         check = np.array(dst).flatten()
         check = check + abs(min(check))
-        # dm.drawMatches(gTempl, kpc, queryImg, kpq, matches)
         if len(matches) > (len(kpc)*1/4):
             lines_list.append(dst)
             cv2.fillPoly(queryImg,[np.int32(dst)],color = (255,255,255))

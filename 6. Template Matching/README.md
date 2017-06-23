@@ -10,6 +10,8 @@ The algorithm uses fatures found by SIFT algorithm and FLANN knn matcher to dete
 Then it applies Meanshift clustering on matched keypoints in order to determine estimated numbers of templates for an image
 When we get the approximate quantity of templates, we use findHomography method and build a bounding box for the first template, then we delete the first template from the image and repeat all steps described below as many times as the approximate quantity of templates.
 
+![image](https://image.ibb.co/jkConk/Screen_Shot_2017_06_23_at_11_59_04.png)
+![image](https://image.ibb.co/mZxFYQ/Screen_Shot_2017_06_23_at_11_47_15.png)
 
 ### How to run:
 * `cd ${git_repository}/6. Template Matching/`

@@ -30,9 +30,6 @@ def matching(descr_template, descr_source):
     _search_params = dict(checks=500)
     _flann = cv2.FlannBasedMatcher(_index_params, _search_params)
     _matches = _flann.knnMatch(descr_template, descr_source, 2)
-    # matches = []
-    # for m, n in _matches:
-    #     matches.append(m)
     return get_good_matches(_matches)
 
 
