@@ -157,3 +157,13 @@ It can predict: 'Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise
 According to the paper this network provides following results:  
 Paper results (Confusion Matrix)  
 ![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/Paper_results.JPG "Confusion Matrix")
+---
+### Results
+
+In this section computational results are shown.  
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/results/angry1.PNG "Angry")
+  
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/results/disgust1.PNG "Disgust") ![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/results/happy2.PNG "Happy")
+  
+![alt text](https://raw.githubusercontent.com/grib0ed0v/hse-cv-course-2017/Emotion-Recognition/1.%20Emotion%20Recognition/materials/results/fear1.PNG "Fear")
+
