@@ -103,7 +103,7 @@ There are several stages of processing an image:
 ```
  
  #### Resizing
- Resizes image so that its biggest dimension is at most `size` while preserving aspect rate.
+ Resizes image so that its biggest dimension is `size` pixels while preserving aspect rate.
  ```json
 "resize": {
     "size": 120.0
