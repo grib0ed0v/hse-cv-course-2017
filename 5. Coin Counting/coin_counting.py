@@ -16,10 +16,10 @@ def get_circles(img):
     for x, y, w, h in rects:
         rect = new_img[int(y / sf): int(y / sf) + int(h / sf), int(x / sf): int(x / sf) + int(w / sf)]
         final_rects.append(rect)
-        # cv2.rectangle(img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
-        #               (0, 0, 255), 2)
-    # cv2.imshow("edges+face", img)
-    return final_rects
+        cv2.rectangle(new_img, (int(x / sf), int(y / sf)), (int(x / sf) + int(w / sf), int(y / sf) + int(h / sf)),
+                      (0, 0, 255), 2)
+    # cv2.imshow("Result", new_img)
+    return final_rects, new_img
 
 
 def find_circles(img):
@@ -54,7 +54,7 @@ def find_circles(img):
 
     # cv2.imshow("Adaptive Thresholding", thresh)
     # cv2.imshow("Morphological Closing", closing)
-    cv2.imshow('Contours', img_2)
+    # cv2.imshow('Contours', img_2)
     cv2.waitKey()
     return circles
 
@@ -216,23 +216,20 @@ def get_features(img):
 
 def test_preprocessing(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
-    rectangles = get_circles(grey_img)
+    rectangles, img_with_coin = get_circles(grey_img)
     thresholds = []
     for i in range(len(rectangles)):
         rectangles[i] = cv2.Canny(rectangles[i], 100, 200)
         ret, rectangles[i] = cv2.threshold(rectangles[i], 127, 255, cv2.THRESH_BINARY_INV)
         adapt_thresh = adaptive_thresholding(rectangles[i])
-        cv2.imshow('adapt_thresh: {}'.format(i), adapt_thresh)
-
         adapt_thresh = adapt_thresh[:, ~np.all(adapt_thresh == 0, axis=0)]  # Remove columns where all elements are zero
         adapt_thresh = adapt_thresh[~np.all(adapt_thresh == 0, axis=1)]  # Remove rows where all elements are zero
-        cv2.imshow('adapt_thresh_new: {}'.format(i), adapt_thresh)
         rect_size = adapt_thresh.shape
         a = rect_size[0]
         b = rect_size[1]
         adapt_thresh = adapt_thresh[int(0.1 * b): int(0.65 * b), int(0.15 * a): int(0.7 * a)]
         thresholds.append(adapt_thresh)
-        cv2.imshow('Threshold: {}'.format(i), thresholds[i])
+        # cv2.imshow('Threshold: {}'.format(i), thresholds[i])
 
     res = []
     for i in range(len(thresholds)):
@@ -268,7 +265,7 @@ def test_preprocessing(original_img):
     X = []
     for i in range(len(res)):
         X.append(get_features(res[i]))
-    return X
+    return X, img_with_coin
 
 
 def tr_test():
@@ -311,17 +308,23 @@ def train_data_test():
 
 def main():
     print('Read image...')
-    img = cv2.imread("test_images/Picture4.jpg")
+    img = cv2.imread("1.jpg")
     print('Image read. Loading classificator...')
     clf = joblib.load('classificator_new_2.pkl')
     print('Getting features...')
-    x_test = test_preprocessing(img)
+    x_test, img_with_coin = test_preprocessing(img)
     y_sum = 0
     for i in range(len(x_test)):
         coin_value = int(clf.predict([x_test[i]])[0])
         print('Coin value = {}'.format(coin_value))
         y_sum = y_sum + coin_value
     print('Sum = {}'.format(y_sum))
+    color = (255, 0, 0)
+    font = cv2.FONT_HERSHEY_DUPLEX
+    cv2.putText(img_with_coin, str(y_sum), (150, 200), font, 6, color, 2)
+
+    cv2.imshow("Result", img_with_coin)
+    cv2.waitKey()
 
 
 if __name__ == '__main__':
