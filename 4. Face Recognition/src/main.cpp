@@ -13,6 +13,7 @@ const struct ConfigNames
 	std::string manager = "manager_config.json";
 	std::string detector = "detector_config.json";
 	std::string recognizer = "facerec_config";
+	std::string pretrainedRecognizer = "pretrained/facerec_config";
 	std::string folders = "folders.json";
 	std::string recognizerparams = "facerec_params_config.json";
 } g_configNames;
@@ -29,6 +30,7 @@ struct ProgramParams
 	bool doTestOnDataset = false;
 	std::string inputPath;
 	std::string outputPath;
+	bool printHelp = false;
 };
 
 enum ProgramArgIds
@@ -43,6 +45,7 @@ enum ProgramArgIds
 	TestDataset,
 	InputPath,
 	OutputPath,
+	Help,
 };
 
 std::vector<ArgParser::Arg> g_programArgs = {
@@ -116,6 +119,13 @@ std::vector<ArgParser::Arg> g_programArgs = {
 		"Specify output directiry for --preprocess-image and --recognize",
 		true
 	},
+	{
+		ProgramArgIds::Help,
+		"h",
+		"help",
+		"Print help message and exit",
+		false
+	},
 };
 
 class ProgramArgParser : public ArgParser
@@ -173,6 +183,10 @@ protected:
 			m_params.doTestOnDataset = true;
 			break;
 
+		case Help:
+			m_params.printHelp = true;
+			break;
+
 		default:
 			return false;
 		}
@@ -216,6 +230,11 @@ ProgramParams prepareParams(int argc, char* argv[])
 	}
 	config = g_argParser.params();
 
+	if (config.printHelp) {
+		logInfo() << g_argParser.generateUsageMessage(argv[0]);
+		exit(0);
+	}
+
 	ProgramParams storedFolders = readProgramFolders(g_configNames.folders);
 	if (config.configFolder.empty()) {
 		config.configFolder = storedFolders.configFolder;
@@ -228,20 +247,16 @@ ProgramParams prepareParams(int argc, char* argv[])
 	}
 
 	if (config.configFolder.empty()) {
-		logInfo() << g_argParser.generateUsageMessage(argv[0]);
-		logError() << "No config folder, aborting";
-		exit(1);
+		config.configFolder = ".";
 	}
 
-	if (!fs::isDir(config.configFolder)) {
+	if (!fs::pathExists(config.configFolder) && !fs::mkdir(config.configFolder)) {
 		logError() << "Invalid config folder:" << config.configFolder;
 		exit(1);
 	}
 
 	if (config.cascadeFolder.empty()) {
-		logInfo() << g_argParser.generateUsageMessage(argv[0]);
-		logError() << "No cascade folder, aborting";
-		exit(1);
+		config.cascadeFolder = ".";
 	}
 
 	if (!fs::isDir(config.cascadeFolder)) {
@@ -518,10 +533,18 @@ int main(int argc, char* argv[])
 		logInfo() << "Loading pre-trained model from" << recognizerConfig;
 		facerec.load(recognizerConfig);
 	}
+
 	if (config.retrain && config.datasetFolder.empty()) {
 		logError() << "Can't train recognizer because dataset folder is not specified!";
 		return 1;
 	}
+
+	if (config.datasetFolder.empty() && !fs::pathExists(recognizerConfig)) {
+		std::string defaultRecognizerConfig = fs::concatPath(config.configFolder, g_configNames.pretrainedRecognizer);
+		logInfo() << "Loading default pre-trained model from" << defaultRecognizerConfig;
+		facerec.load(defaultRecognizerConfig);
+	}
+
 	if (!config.datasetFolder.empty()) {
 		DatasetManager mgr;
 		std::string mgrConfig = fs::concatPath(config.configFolder, g_configNames.manager);

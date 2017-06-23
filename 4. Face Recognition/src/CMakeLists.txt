@@ -65,4 +65,6 @@ add_custom_command(TARGET iad_facerec POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CASCADES} ${OUT_DIR}/haarcascades
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${OUT_DIR}/lbpcascades
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LBPCASCADES} ${OUT_DIR}/lbpcascades
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${OUT_DIR}/pretrained
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/data/pretrained/facerec_config ${OUT_DIR}/pretrained
 )
