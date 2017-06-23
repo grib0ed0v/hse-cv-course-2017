@@ -61,6 +61,9 @@ cv::Point2i FaceDetector::detectEye(cv::CascadeClassifier& classifier, cv::Mat i
 	if (eyeRects.empty())
 		return cv::Point2i(-1, -1);
 
+	if (m_config.debug.drawEyes) {
+		cv::rectangle(img, eyeRects[0], cv::Scalar(1), 3);
+	}
 	cv::Point2i eyePoint;
 	eyePoint.x = eyeRects[0].x + eyeRects[0].width / 2;
 	eyePoint.y = eyeRects[0].y + eyeRects[0].height / 2;
@@ -79,12 +82,18 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 
 	cv::Point2i leftEye = detectEye(m_leftEyeClassifier, topLeft);
 	cv::Point2i rightEye(-1, -1);
+	bool glass = false;
 	if (leftEye.x > 0) {
 		rightEye = detectEye(m_rightEyeClassifier, topRight);
-	} else {
+	}
+
+	if (leftEye.x < 0 || rightEye.x < 0) {
 		leftEye = detectEye(m_eyeglassClassifier, topLeft);
 		if (leftEye.x > 0) {
 			rightEye = detectEye(m_eyeglassClassifier, topRight);
+			if (rightEye.x > 0) {
+				glass = true;
+			}
 		}
 	}
 
@@ -96,8 +105,10 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 
 	rightEye.x += img.cols/2;
 
-	//cv::circle(img, leftEye, 20, cv::Scalar(255, 255, 255, 255), 5);
-	//cv::circle(img, rightEye, 20, cv::Scalar(0), 5);
+	if (m_config.debug.drawEyes) {
+		cv::circle(img, leftEye, 20, cv::Scalar(glass ? 127 : 1), 3);
+		cv::circle(img, rightEye, 20, cv::Scalar(255), 3);
+	}
 
 	int dx = rightEye.x - leftEye.x;
 	int dy = rightEye.y - leftEye.y;
@@ -153,7 +164,7 @@ void FaceDetector::applyMask(cv::Mat& img)
 	cv::Mat mat(img.size(), CV_8U, cv::Scalar(0));
 	cv::Point center(img.size().width/2, img.size().height/2);
 	cv::ellipse(mat,
-		center, 
+		center,
 		cv::Size((int)(img.cols * m_config.mask.axeXFactor), (int)(img.rows * m_config.mask.axeYFactor)),
 		0, 0, 360, cv::Scalar(255), CV_FILLED);
 	cv::Mat masked(img.size(), CV_8U, cv::Scalar(127));
@@ -164,12 +175,14 @@ void FaceDetector::applyMask(cv::Mat& img)
 cv::Mat FaceDetector::processFace(cv::Mat img)
 {
 	//cv::imshow("before", img);
-	geometryTransform(img);
-	normalizeIllumination(img);
 	denoise(img);
 	resize(img);
+	geometryTransform(img);
+	normalizeIllumination(img);
 	applyMask(img);
-	//cv::imshow("after", img);
+	if (m_config.debug.showResult) {
+		cv::imshow("after", img);
+	}
 	return img;
 }
 

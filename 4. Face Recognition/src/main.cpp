@@ -246,7 +246,7 @@ void preprocessDataset(ProgramParams config)
 		return;
 	}
 
-	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, "detector.yml"));
+	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, g_configNames.detector));
 
 	Dataset data;
 	if (config.datasetFolder.empty()) {
@@ -315,7 +315,7 @@ void processImage(ProgramParams config, FaceRecognizer* pRecognizer = nullptr)
 		return;
 	}
 
-	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, "detector.yml"));
+	FaceDetector detector(config.cascadeFolder, fs::concatPath(config.configFolder, g_configNames.detector));
 	size_t createdImages = 0;
 
 	std::vector<FaceDetector::FaceRegion> faces = detector.detect(image);

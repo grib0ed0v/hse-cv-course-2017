@@ -13,7 +13,7 @@ public:
 
 	FaceDetector(const std::string& cascadePath, const std::string& configPath);
 	std::vector<FaceRegion> detect(cv::Mat img);
-	
+
 	bool readConfig(const std::string& path);
 	bool saveConfig(const std::string& path);
 
@@ -210,6 +210,27 @@ private:
 			}
 		} faceDetect;
 
+		struct Debug
+		{
+			// bool does not work well
+			int showResult = false;
+			int drawEyes = false;
+
+			void write(cv::FileStorage& fs) const
+			{
+
+				fs << "{"
+					STREAM_VAR(showResult)
+					STREAM_VAR(drawEyes)
+					<< "}";
+			}
+			void read(const cv::FileNode& node)
+			{
+				READ_VAR_NODE(showResult);
+				READ_VAR_NODE(drawEyes);
+			}
+		} debug;
+
 		bool write(const std::string& path) const
 		{
 			cv::FileStorage fs(path, cv::FileStorage::WRITE);
@@ -224,6 +245,7 @@ private:
 			fs << "illumination";	illumination.write(fs);
 			fs << "mask";			mask.write(fs);
 			fs << "faceDetect";		faceDetect.write(fs);
+			fs << "debug";			debug.write(fs);
 			return true;
 		}
 		bool read(const std::string& path)
@@ -240,6 +262,7 @@ private:
 			illumination.read(fs["illumination"]);
 			mask.read(fs["mask"]);
 			faceDetect.read(fs["faceDetect"]);
+			debug.read(fs["debug"]);
 			return true;
 		}
 	};
