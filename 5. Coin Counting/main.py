@@ -1,49 +1,23 @@
-import numpy as np
-import cv2
-
-# http://blog.christianperone.com/2014/06/simple-and-effective-coin-segmentation-using-python-and-opencv/
-def webcam_coin_segmentation():
-    cap = cv2.VideoCapture(0)
-    cap.set(3, 1280)
-    cap.set(4, 720)
-
-    while (True):
-        ret, frame = cap.read()
-        roi = frame[0:500, 0:500]
-        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-
-        gray_blur = cv2.GaussianBlur(gray, (15, 15), 0)
-        thresh = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                       cv2.THRESH_BINARY_INV, 11, 1)
-
-        kernel = np.ones((3, 3), np.uint8)
-        closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE,
-                                   kernel, iterations=4)
-
-        cont_img = closing.copy()
-        im2, contours, hierarchy = cv2.findContours(cont_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        for cnt in contours:
-             area = cv2.contourArea(cnt)
-             if area < 2000 or area > 4000:
-                 continue
-
-             if len(cnt) < 5:
-                 continue
-
-             ellipse = cv2.fitEllipse(cnt)
-             cv2.ellipse(roi, ellipse, (0, 255, 0), 2)
-
-        cv2.imshow("Morphological Closing", closing)
-        cv2.imshow("Adaptive Thresholding", thresh)
-        cv2.imshow('Contours', roi)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
+import argparse
+from hse_cv.util.resize_images import resize_images
+from hse_cv.coin_counting.train_classifier import train_model
+from hse_cv.coin_counting.predict import predict_sum
 
 if __name__ == "__main__":
-    webcam_coin_segmentation()
+    parser = argparse.ArgumentParser()
+    # Global arguments
+    parser.add_argument('-c', help='Command to execute')
+    # Resize images arguments
+    parser.add_argument('-input_dir', help='Path to images folder')
+    parser.add_argument('-scaling_factor', help='Scaling factor')
+    parser.add_argument('-output_dir', help='Output directory')
+    # Predict command arguments
+    parser.add_argument('-image', help='Path to image')
+    args = parser.parse_args()
+    command = args.c
+    if command == 'resize':
+        resize_images(args.input_dir, float(args.scaling_factor), args.output_dir)
+    elif command == 'train':
+        train_model(args.input_dir)
+    elif command == 'predict':
+        predict_sum(args.image)
