@@ -9,7 +9,7 @@ from utils import *
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--template', default='pictures/C.png',help="template file")
-    parser.add_argument('--file', default = 'pictures/C9.jpg',help= "target file")
+    parser.add_argument('--file', default = 'pictures/C1.jpg',help= "target file")
     args = parser.parse_args()
     return args
 
