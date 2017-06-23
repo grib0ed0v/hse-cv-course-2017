@@ -108,15 +108,15 @@ std::vector<ArgParser::Arg> g_programArgs = {
 	{
 		ProgramArgIds::InputPath,
 		"i",
-		"intput",
-		"Specify input directiry or file for --preprocess-image, --recognize, and --test",
+		"input",
+		"Specify input directory or file for --preprocess-image, --recognize, and --test",
 		true
 	},
 	{
 		ProgramArgIds::OutputPath,
 		"o",
 		"output",
-		"Specify output directiry for --preprocess-image and --recognize",
+		"Specify output directory for --preprocess-image and --recognize",
 		true
 	},
 	{

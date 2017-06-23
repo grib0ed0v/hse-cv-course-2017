@@ -33,6 +33,7 @@ private:
 		int grid_x = 8;
 		int grid_y = 8;
 		double threshold = DBL_MAX;
+		int confidenceOutput = false;
 
 		bool write(const std::string& path) const
 		{
@@ -45,6 +46,7 @@ private:
 			fs << "grid_x" << grid_x;
 			fs << "grid_y" << grid_y;
 			fs << "threshold" << threshold;
+			fs << "confidenceOutput" << confidenceOutput;
 			return true;
 		}
 
@@ -59,6 +61,7 @@ private:
 			grid_x = fs["grid_x"];
 			grid_y = fs["grid_y"];
 			threshold = fs["threshold"];
+			confidenceOutput = fs["confidenceOutput"];
 			return true;
 		}
 	};

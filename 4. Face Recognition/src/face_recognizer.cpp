@@ -90,7 +90,9 @@ std::string FaceRecognizer::predict(cv::Mat image) const
 		return "Unknown";
 	}
 	std::string s = m_facerec->getLabelInfo(label);
-	//s += " ";
-	//s += std::to_string(confidence);
+	if (m_config.confidenceOutput) {
+		s += " ";
+		s += std::to_string(confidence);
+	}
 	return s;
 }
