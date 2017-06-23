@@ -6,6 +6,9 @@ ___
 
 ## Program description
 Program find template on target image.
+The algorithm uses SIFT features and FLANN knn matcher to detect matched keypoints between template and image
+Then it applies Meansgift clustering on matched keypoints in order to determine estimated numbers of templates for an image
+When we get the approximate quantity of templates, we use findHomography method and buila a bounding box for the first template, then we delete the first template from the image and repeat all steps described below as many times as the appriximate quantity of templates.
 
 //TO DO Write fuc*ing description with screensots
 ### How to run:
