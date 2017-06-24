@@ -166,3 +166,64 @@ Gamma correction is applied first (using [this tutorial](http://docs.opencv.org/
  ### Recognition
  
  Face recognition is done with [cv::face::FaceRecognizer](http://docs.opencv.org/trunk/dd/d65/classcv_1_1face_1_1FaceRecognizer.html). Local Binary Patterns Histograms (LBPH) is used because it supports updates. It can be configured with `config_folder/facerec_params_config.json` file.
+ 
+ ### Debug capabilities
+ 
+ There are debug parameters available that can be used to test stuff. Use with caution - some of these parameters can break the recognizer.
+ In `detector_config.json` there are several parameters:
+ * `showResult` - if set, a window with preprocessing results is displayed;
+ * `waitKey` - wait for key press after preprocessing - to be used with `showResult` when wotking with single images
+ * `drawEyes` - draw detected eye rectangle and circle in the middle of this rectangle. Use `showResult` to see it
+ * `noDetect` - disable detection
+ * `noProcessing` - disable preprocessing
+ * `preserveColor` - when creating an image of detected face use colored version instead of grayscale
+ * `extendRectFactor` - change detected face rectangle by a factor - aspect ratio is preserved
+ 
+ Examples of detector debug configs:
+ Show result and eyes to demonstrate geometry transformation from webcam:
+ ```json
+ "debug": {
+    "showResult": 1,
+    "waitKey": 0,
+    "drawEyes": 1,
+    "noDetect": 0,
+    "noProcessing": 0,
+    "preserveColor": 0,
+    "extendRectFactor": 1.0
+ }
+ ```
+ 
+ Semi-automatic dataset creation: find faces, preserve color and extend rectangle. Extend factor is set to 2.0 to save context so that face detector can detect same face again. This is intended for image file processing with `-pd` or `-pi` and will break recognizer.
+ ```json
+ "debug": {
+    "showResult": 1,
+    "waitKey": 0,
+    "drawEyes": 0,
+    "noDetect": 0,
+    "noProcessing": 1,
+    "preserveColor": 1,
+    "extendRectFactor": 2.0
+ }
+ ```
+        
+ In`facerec_params_config.json` there is a flag `confidenceOutput` that can be set to, unsurprisingly, add output of the confidence value returned by face recognizer. Note that although it is specified as "confidence", lower values signify better match.
+
+----
+## Experimental results
+
+Used dataset consists of 289 images (not public, available by request) of 19 subjects. Data was separated into train and test of 190 and 99 images respectively. Results for two configurations are presented: with preprocessing enabled and with preprocessing disabled (`detector_config.json`, section `debug` value `noProcessing` set).
+
+Recognizer calls used to obtain single result:
+
+    iad_facerec -pd -d ../_train/ -o ../_train_proc
+    iad_facerec -t -d ../_train_proc/
+    iad_facerec -td -i ../_test
+    
+Face detection result is the same for both configurations: out of 99 images faces were detected on 96 and there were 4 images with multiple detections. Results are below:
+
+| Preprocessing | Recognized |
+| ------------- | ---------- |
+| Disabled      |     64     |
+| Enabled       |     74     |
+
+Face is considered "Recognized" if at least one of detected faces was labeled correctly. Of course this method does not take false detections into account, but we consider the possibility of correctly labeling false detection small enough.
