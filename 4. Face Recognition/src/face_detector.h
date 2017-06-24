@@ -287,7 +287,6 @@ private:
 
 	Config m_config;
 	cv::CascadeClassifier m_classifier;
-	//cv::CascadeClassifier m_eyeClassifier;
 	cv::CascadeClassifier m_leftEyeClassifier;
 	cv::CascadeClassifier m_rightEyeClassifier;
 	cv::CascadeClassifier m_eyeglassClassifier;

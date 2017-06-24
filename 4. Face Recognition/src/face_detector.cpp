@@ -128,14 +128,6 @@ void FaceDetector::geometryTransform(cv::Mat& img)
 
 	img = rotated;
 	img.forEach<uint8_t>([](uint8_t &p, const int*) { p = (p == 0 ? 127 : p);});
-
-	//int sum = 0;
-	//img.forEach<uint8_t>([&sum](uint8_t &p, const int*) { sum += p; });
-
-	//double weight = 127.0;
-	//double coeff = weight / ((weight / img.size().area()) * sum);
-	//logInfo() << sum << coeff;
-	//img.forEach<uint8_t>([coeff](uint8_t &p, const int*) { p *= coeff; });
 }
 
 void FaceDetector::normalizeIllumination(cv::Mat& img)
@@ -148,15 +140,11 @@ void FaceDetector::normalizeIllumination(cv::Mat& img)
 		p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, gamma) * 255.0);
 	cv::Mat res = img.clone();
 	LUT(img, lookUpTable, res);
-	//cv::imshow("before", img);
 	img = res;
-	//cv::imshow("gamma", img);
 
 	int tileGridSize = m_config.illumination.claheTileSize;
 	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(m_config.illumination.clipLimit, cv::Size(tileGridSize, tileGridSize));
 	clahe->apply(img, img);
-	//cv::equalizeHist(img, img);
-	//cv::imshow("clahe", img);
 }
 
 void FaceDetector::applyMask(cv::Mat& img)
@@ -174,18 +162,11 @@ void FaceDetector::applyMask(cv::Mat& img)
 
 cv::Mat FaceDetector::processFace(cv::Mat img)
 {
-	//cv::imshow("before", img);
-	//cv::imwrite("original.png", img);
 	denoise(img);
-	//cv::imwrite("denoise.png", img);
 	resize(img);
-	//cv::imwrite("resize.png", img);
 	geometryTransform(img);
-	//cv::imwrite("geometry.png", img);
 	normalizeIllumination(img);
-	//cv::imwrite("illumination.png", img);
 	applyMask(img);
-	//cv::imwrite("mask.png", img);
 	if (m_config.debug.showResult) {
 		cv::imshow("after", img);
 	}
