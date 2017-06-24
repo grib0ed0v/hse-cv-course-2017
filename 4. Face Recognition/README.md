@@ -197,7 +197,7 @@ Gamma correction is applied first (using [this tutorial](http://docs.opencv.org/
  Semi-automatic dataset creation: find faces, preserve color and extend rectangle. Extend factor is set to 2.0 to save context so that face detector can detect same face again. This is intended for image file processing with `-pd` or `-pi` and will break recognizer.
  ```json
  "debug": {
-    "showResult": 1,
+    "showResult": 0,
     "waitKey": 0,
     "drawEyes": 0,
     "noDetect": 0,
