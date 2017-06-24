@@ -180,6 +180,7 @@ Gamma correction is applied first (using [this tutorial](http://docs.opencv.org/
  * `extendRectFactor` - change detected face rectangle by a factor - aspect ratio is preserved
  
  Examples of detector debug configs:
+ 
  Show result and eyes to demonstrate geometry transformation from webcam:
  ```json
  "debug": {
