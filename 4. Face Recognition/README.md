@@ -1,5 +1,10 @@
 Face recognition project
 ----
+## Task
+
+Implement face recognition system with the ability to add new faces to the recognizer.
+
+----
 ## Prerequisites
 * [cmake](https://cmake.org/)
 * [opencv](http://opencv.org/)
@@ -90,6 +95,8 @@ There are several stages of processing an image:
 }
 ```
 
+Several Haar cascades are provided in `data/haarcascades` and LBP cascades are provided in `data/lbpcascades`. We've had best results with default cascade, but LBP casdaces can be used for better performance.
+
  #### Denoising
  
  Denoising is done via [cv::bilateralFilter](http://docs.opencv.org/master/d4/d86/group__imgproc__filter.html) that was chosen because it preserves edges.
@@ -103,7 +110,7 @@ There are several stages of processing an image:
 ```
  
  #### Resizing
- Resizes image so that its biggest dimension is `size` pixels while preserving aspect rate.
+ Resizes image so that its biggest dimension is `size` pixels while preserving aspect rate. For LBPH face recognizer it is not necessary, but it still works better with resized images. Also eye detectors don't work very well with bigger images.
  ```json
 "resize": {
     "size": 120.0
@@ -113,7 +120,7 @@ There are several stages of processing an image:
  #### Rotation
 Rotation is done so that eyes lie on horizontal line.
 
-Eye detection is done within the rectangle that lies between `eyeTopFactor` and `eyeBottomFactor` portions of the image. First then left eye is detected, then right. If detection fails, it is repeated with alternative classifier.
+Eye detection is done within the rectangle that lies between `eyeTopFactor` and `eyeBottomFactor` portions of the image. First the left eye is detected, then right. If detection fails, it is repeated with alternative classifier - it intended to be fallback for glasses (hence the name `eyeglassClassifier`), but it is usually not needed.
 
 ```json
 "eyeDetect": {
@@ -123,7 +130,7 @@ Eye detection is done within the rectangle that lies between `eyeTopFactor` and 
     "maxSizeFactor": 0.5
 }
 ```
-Then rotation angle that is needed make eyes horizontal is computed. If it exceeds `maxAngle` then eye detector had probably detected the nose and rotation is discarded.
+Then rotation angle that is needed make eyes horizontal is computed. If it exceeds `maxAngle` then eye detector had probably detected the nose and rotation is discarded since face detector detects faces rotated no more than about 20°.
 
  ```json
 "geometry": {
@@ -158,4 +165,4 @@ Gamma correction is applied first (using [this tutorial](http://docs.opencv.org/
  
  ### Recognition
  
- Face recognition is done with (cv::face::FaceRecognizer)[http://docs.opencv.org/trunk/dd/d65/classcv_1_1face_1_1FaceRecognizer.html]. Local Binary Patterns Histograms (LBPH) is used because it supports updates. It can be configured with `config_folder/facerec_params_config.json` file.
+ Face recognition is done with [cv::face::FaceRecognizer](http://docs.opencv.org/trunk/dd/d65/classcv_1_1face_1_1FaceRecognizer.html). Local Binary Patterns Histograms (LBPH) is used because it supports updates. It can be configured with `config_folder/facerec_params_config.json` file.
