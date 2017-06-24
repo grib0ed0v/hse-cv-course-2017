@@ -25,3 +25,6 @@ Program applies following command line arguments:
 * [Anaconda]( https://www.continuum.io/downloads) with Python2
 * [OpenCV 2.4.13](https://github.com/opencv/opencv/tree/2.4.13)
 * [Scikit-learn](http://scikit-learn.org)
+
+
+PS: Another approach based on clustering is in the main.py file. Because the quality of the template finding is not great, good rendering bounding box is not done.

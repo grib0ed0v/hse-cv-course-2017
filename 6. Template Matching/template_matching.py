@@ -1,9 +1,6 @@
 import argparse
 import cv2
-import numpy as np
-import drawMatches as dm
 import anotherCluster as acl
-import copy
 from utils import *
 
 def parse_args():
@@ -15,7 +12,7 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    if args.template == None or args.file == None:
+    if args.template_file == None or args.target_file == None:
         raise IOError("Set please template and target files")
     coke, query, C, gquery = load_etalon_query(args.template_file, args.target_file)
 

@@ -1,6 +1,7 @@
 import cv2
 from utils import *
 import anotherCluster as acl
+import argparse
 
 
 def get_global_cluster(matched_clusters, source_kp_clusters, source_dscr_clusters, cluster):
@@ -26,10 +27,20 @@ def get_global_cluster(matched_clusters, source_kp_clusters, source_dscr_cluster
             result_descr.append(d)
     return np.array(result_kp), np.array(result_descr), clusters
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--template_file','-t', default='pictures/C.png',help="template file")
+    parser.add_argument('--target_file', '-f', default = 'pictures/C8.jpg',help= "target file")
+    args = parser.parse_args()
+    return args
+
 def main():
+    args = parse_args()
+    if args.template_file == None or args.target_file == None:
+        raise IOError("Set please template and target files")
 
     # load images
-    coke, query, C, gquery = load_etalon_query("pictures/C.jpg", "pictures/C10.jpg")
+    coke, query, C, gquery = load_etalon_query(args.template_file, args.target_file)
     # get pey points for template and source images
     kpc, desc, kpq, desq, src_pts, dst_pts, matches = keypoints_match(C, gquery)
 
@@ -43,7 +54,7 @@ def main():
         # clustering source key points
         slabels, sncluster = acl.meanshift_clustering(spoints_lst, quantile=0.01, n_samples=500)
         if sncluster is None:
-            return
+            break
         # split all key points and descriptors into clusters
         skp_clusters = clsplite(kpq, slabels, sncluster)
         sdscr_clusters = clsplite(desq, slabels, sncluster)
@@ -61,7 +72,7 @@ def main():
         # clustering matched key points
         smlabels, smncluster = acl.meanshift_clustering(mspoints_lst, quantile=0.13, n_samples=500)
         if smncluster is None:
-            return
+            break
 
         # split all key points and descriptors into clusters
         smkp_clusters = clsplite(mkpq, smlabels, smncluster)
@@ -83,39 +94,10 @@ def main():
         kpq, desq, slabels = remove_cluster(kpq, desq, slabels, cls)
 
 
-        cv2.namedWindow('cluster', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('cluster', 980, 720)
-        cv2.imshow('cluster', query)
-        cv2.waitKey()
+    cv2.namedWindow('cluster', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('cluster', 980, 720)
+    cv2.imshow('cluster', query)
+    cv2.waitKey()
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-#
-#
-# # finding homography on clusters ((src_pts, dst_pts, cv2.RANSAC,3.0))
-# cluster = 25
-# points = np.float32(get_points(skp_clusters[cluster])).reshape(-1, 1, 2)
-# print "src_pts.shape ", src_pts.shape, type(src_pts)
-# print "points.shape", points.shape, type(points)
-# M, mask = cv2.findHomography(src_pts, points, cv2.RANSAC, 3.0)
-#
-# h, w = C.shape
-# pts = np.float32([[0, 0], [0, h], [w, h], [w, 0]]).reshape(-1, 1, 2)
-# dst = cv2.perspectiveTransform(pts, M)
-# # drawing shape of found template
-# cv2.fillPoly(gquery, [np.int32(dst)], color=(255, 255, 255))
-#
-# cv2.imshow("cluster " + str(cluster), gquery)
-# cv2.waitKey()
