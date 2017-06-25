@@ -58,7 +58,7 @@ For better results, especially if your images are not cropped or contain more th
     
 You will get warnings if your images confuse face detector. Remove (manually) false detections from processed folder and train the recognizer:
 
-    ./iad_facerec -t -d dataset_proc
+    ./iad_facerec -t -d processed_dataset
     
 ----
 ## Configuraion and algorithm description
@@ -258,3 +258,10 @@ Results for test set are below:
 | Disabled      |     0.166667     |      0.150943    |
 | Enabled       |     0.375        |      0.339623    | 
 
+----
+## Conclusions
+
+* Face normalization is essential, especially when dealing with real-world conditions
+* Face recognition is very sensitive to illumination
+* It is possible to achieve performance acceptable for real-time, but with small datasets and some trade-offs in quality
+* Preparing datasets is a tedious task
