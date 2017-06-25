@@ -58,7 +58,7 @@ For better results, especially if your images are not cropped or contain more th
     
 You will get warnings if your images confuse face detector. Remove (manually) false detections from processed folder and train the recognizer:
 
-    ./iad_facerec -t -d dataset
+    ./iad_facerec -t -d dataset_proc
     
 ----
 ## Configuraion and algorithm description
@@ -212,7 +212,9 @@ Gamma correction is applied first (using [this tutorial](http://docs.opencv.org/
 ----
 ## Experimental results
 
-Used dataset consists of 289 images (not public, available by request) of 19 subjects. Data was separated into train and test of 190 and 99 images respectively. Results for two configurations are presented: with preprocessing enabled and with preprocessing disabled (`detector_config.json`, section `debug` value `noProcessing` set).
+### Our own dataset
+
+Used dataset consists of 289 images of 19 subjects. Data was separated into train and test sets of 190 and 99 images respectively. Results for two configurations are presented: with preprocessing enabled and with preprocessing disabled (`detector_config.json`, section `debug` value `noProcessing` set).
 
 Recognizer calls used to obtain single result:
 
@@ -228,3 +230,31 @@ Face detection result is the same for both configurations: out of 99 images face
 | Enabled       |     74     |
 
 Face is considered "Recognized" if at least one of detected faces was labeled correctly. Of course this method does not take false detections into account, but we consider the possibility of correctly labeling false detection small enough.
+
+
+### Extended Yale Face Database B
+
+Another dataset used for testing is [Extended Yale Face Database B](http://vision.ucsd.edu/~iskwak/ExtYaleDatabase/ExtYaleB.html). Data was separated into train and test sets of 50% and 50% respectively. We got a lot of false positives during face detection so we applied stricter detection options in `faceDetect` section: `"scaleFactor" : 1.15`, `"minNeighbors" : 8`, `"minSizeX" : 50`, `"minSizeY" : 50`
+As a result we had a low detection rate (59%), but much better quality of detections. 
+
+Results on test set:
+
+| Preprocessing | Recognition Rate | Overall Accuracy |
+| ------------- | ---------------- | ---------------- |
+| Disabled      |     0.963674     |     0.570085     |
+| Enabled       |     0.964912     |     0.570818     | 
+
+
+Normalization had almost no impact because faces in the training dataset had more or less the same illumination variation as in the test set, upright positions and same background.
+
+### Unconstrained Facial Images Database
+
+[UFI Large](http://ufi.kiv.zcu.cz/) is much more challenging and contains photos made under real-world conditions. Test and train set split was provided by authors of the dataset.  We used the same face detection options as for [Extended Yale Face Database B](http://vision.ucsd.edu/~iskwak/ExtYaleDatabase/ExtYaleB.html). We got 91% detection rate on test set.
+
+Results for test set are below:
+
+| Preprocessing | Recognition Rate | Overall Accuracy |
+| ------------- | ---------------- | ---------------- |
+| Disabled      |     0.166667     |      0.150943    |
+| Enabled       |     0.375        |      0.339623    | 
+
