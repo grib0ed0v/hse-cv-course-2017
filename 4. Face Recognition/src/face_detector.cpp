@@ -200,8 +200,8 @@ std::vector<FaceDetector::FaceRegion> FaceDetector::detect(cv::Mat img)
 	for (cv::Rect& faceRect : faceRects) {
 		if (std::abs(m_config.debug.extendRectFactor - 1.0) > 0.01) {
 			double factor = m_config.debug.extendRectFactor;
-			int dx = faceRect.width * factor - faceRect.width;
-			int dy = faceRect.height * factor - faceRect.height;
+			int dx = (int)(faceRect.width * factor - faceRect.width);
+			int dy = (int)(faceRect.height * factor - faceRect.height);
 			faceRect.x = std::max(0, faceRect.x - dx/2);
 			faceRect.y = std::max(0, faceRect.y - dy/2);
 			faceRect.width = std::min(img.cols - faceRect.x, faceRect.width + dx);
