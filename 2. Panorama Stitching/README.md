@@ -6,7 +6,7 @@
 
 ### Additional packages:
 - Numpy
-- Imulils
+- Imutils
 - Argparse
 
 ### How to run
