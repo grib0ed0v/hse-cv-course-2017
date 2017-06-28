@@ -2,6 +2,11 @@
 <b>Authors</b>: Maxim Viko, Inna Vasiljeva, Alexander Kozitsin, Elena Pavlova  
 <b>Insipred by</b>: Alexey Gruzdev
 
+### Problem statement:
+
+Implement application, which recognize person's emotion from picture/video stream, using artificial neural network, imported by OpenCV DNN module.  
+
+---
 ### Prerequisites: 
 * Anaconda with Python 3   
 Download: https://www.continuum.io/downloads 
