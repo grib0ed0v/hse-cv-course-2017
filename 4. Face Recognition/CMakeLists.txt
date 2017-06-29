@@ -1,0 +1,19 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+project(iad_facerec)
+
+#SET(OpenCV_DIR /path/to/opencv/build)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(UNIX)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG=1")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wall -Wextra -Wpedantic")
+elseif(WIN32)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /DDEBUG=1")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /W4 /WX")
+endif()
+
+add_subdirectory(src)
